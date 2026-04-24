@@ -59,11 +59,13 @@ def load_orders() -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
 
 
-def init_cart() -> None:
+def init_state() -> None:
     if "cart" not in st.session_state:
         st.session_state.cart = {}
     if "last_order" not in st.session_state:
         st.session_state.last_order = None
+    if "last_email_error" not in st.session_state:
+        st.session_state.last_email_error = None
 
 
 def add_to_cart(product_id: int, quantity: int) -> None:
@@ -84,6 +86,7 @@ def clear_cart() -> None:
 
 def clear_last_order() -> None:
     st.session_state.last_order = None
+    st.session_state.last_email_error = None
 
 
 def cart_dataframe(products: pd.DataFrame) -> pd.DataFrame:
@@ -258,6 +261,7 @@ Valmis ehdotus asiakkaalle lähetettäväksi tilausvahvistukseksi:
 
 
 def build_order_receipt_text(order_data: dict) -> str:
+    item_lines = order_data["items"].replace(" | ", "\n")
     return f"""Hunajapuoti
 
 Tilausnumero: {order_data['order_id']}
@@ -269,7 +273,7 @@ Puhelin: {order_data['phone']}
 Toimitustapa: {order_data['delivery_method']}
 
 Tilauksen sisältö:
-{order_data['items'].replace(' | ', '\n')}
+{item_lines}
 
 Yhteensä: {order_data['total']:.2f} €
 
@@ -286,6 +290,12 @@ def show_last_order_box() -> None:
         f"Kiitos! Tilauspyyntösi vastaanotettiin. Tilausnumero: {order_data['order_id']}"
     )
     st.info("Tilauksesi on käsittelyssä ja saat tilausvahvistuksen sähköpostiisi hetken kuluttua.")
+
+    if st.session_state.last_email_error:
+        st.warning(
+            "Tilaus tallentui, mutta Ninalle lähtevän ilmoitusviestin lähetys epäonnistui: "
+            + st.session_state.last_email_error
+        )
 
     receipt_text = build_order_receipt_text(order_data)
     st.download_button(
@@ -323,8 +333,6 @@ def product_card(product: pd.Series) -> None:
 def storefront(products: pd.DataFrame) -> None:
     st.title("🍯 Hunajapuoti")
     st.write("Paikallista hunajaa suoraan tuottajalta. Tämä on kevyt verkkokauppademo tilausten vastaanottoon.")
-
-    show_last_order_box()
 
     st.markdown("### Tuotteet")
     cols = st.columns(2)
@@ -373,6 +381,9 @@ def cart_view(products: pd.DataFrame) -> None:
 
 def checkout_form(products: pd.DataFrame) -> None:
     st.markdown("### Lähetä tilauspyyntö")
+
+    show_last_order_box()
+
     if not st.session_state.cart:
         st.caption("Lisää ensin tuotteita koriin.")
         return
@@ -398,7 +409,8 @@ def checkout_form(products: pd.DataFrame) -> None:
                         notes.strip(),
                         products,
                     )
-                    email_warning = None
+
+                    st.session_state.last_email_error = None
                     try:
                         send_owner_notification(
                             customer_name=customer_name.strip(),
@@ -412,7 +424,7 @@ def checkout_form(products: pd.DataFrame) -> None:
                             products=products,
                         )
                     except Exception as e:
-                        email_warning = str(e)
+                        st.session_state.last_email_error = str(e)
 
                     st.session_state.last_order = {
                         "order_id": order_id,
@@ -427,8 +439,6 @@ def checkout_form(products: pd.DataFrame) -> None:
 
                     clear_cart()
                     st.balloons()
-                    if email_warning:
-                        st.warning(f"Tilaus tallentui, mutta ilmoitusviestin lähetys epäonnistui: {email_warning}")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Tilausta ei voitu tallentaa Google Sheetiin: {e}")
@@ -453,7 +463,7 @@ def admin_view() -> None:
 
 
 def main() -> None:
-    init_cart()
+    init_state()
     products = load_products()
 
     page = st.sidebar.radio("Sivu", ["Puoti", "Tilaukset"])

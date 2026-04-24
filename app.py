@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import csv
 import uuid
 from datetime import datetime
 from pathlib import Path
 
+import gspread
 import pandas as pd
 import streamlit as st
 
 BASE_DIR = Path(__file__).parent
 PRODUCTS_FILE = BASE_DIR / "products.csv"
-ORDERS_FILE = BASE_DIR / "orders.csv"
+SHEET_NAME = "Hunajapuodin tilaukset"
 
 st.set_page_config(page_title="Hunajapuoti", page_icon="🍯", layout="wide")
 
@@ -22,22 +22,39 @@ def load_products() -> pd.DataFrame:
     return df
 
 
+def get_gsheet_worksheet():
+    gc = gspread.service_account_from_dict(dict(st.secrets["gcp_service_account"]))
+    sh = gc.open(SHEET_NAME)
+    return sh.sheet1
+
+
 def load_orders() -> pd.DataFrame:
-    if not ORDERS_FILE.exists() or ORDERS_FILE.stat().st_size == 0:
-        return pd.DataFrame(
-            columns=[
-                "timestamp",
-                "order_id",
-                "customer_name",
-                "email",
-                "phone",
-                "delivery_method",
-                "notes",
-                "items",
-                "total_eur",
-            ]
-        )
-    return pd.read_csv(ORDERS_FILE)
+    columns = [
+        "timestamp",
+        "order_id",
+        "customer_name",
+        "email",
+        "phone",
+        "delivery_method",
+        "notes",
+        "items",
+        "total_eur",
+    ]
+    try:
+        worksheet = get_gsheet_worksheet()
+        values = worksheet.get_all_values()
+        if not values:
+            return pd.DataFrame(columns=columns)
+
+        header = values[0]
+        rows = values[1:]
+
+        if not rows:
+            return pd.DataFrame(columns=header)
+
+        return pd.DataFrame(rows, columns=header)
+    except Exception:
+        return pd.DataFrame(columns=columns)
 
 
 def init_cart() -> None:
@@ -93,8 +110,28 @@ def serialize_items(products: pd.DataFrame) -> str:
     for product_id, qty in st.session_state.cart.items():
         match = products.loc[products["id"] == product_id]
         if not match.empty:
-            parts.append(f"{match.iloc[0]['name']} x {qty}")
+            product = match.iloc[0]
+            line_total = float(product["price"]) * int(qty)
+            parts.append(f"{product['name']} x {qty} = {line_total:.2f} €")
     return " | ".join(parts)
+
+
+def ensure_sheet_header() -> None:
+    worksheet = get_gsheet_worksheet()
+    expected_header = [
+        "timestamp",
+        "order_id",
+        "customer_name",
+        "email",
+        "phone",
+        "delivery_method",
+        "notes",
+        "items",
+        "total_eur",
+    ]
+    current_row = worksheet.row_values(1)
+    if current_row != expected_header:
+        worksheet.update("A1:I1", [expected_header])
 
 
 def save_order(customer_name: str, email: str, phone: str, delivery_method: str, notes: str, products: pd.DataFrame) -> str:
@@ -103,19 +140,19 @@ def save_order(customer_name: str, email: str, phone: str, delivery_method: str,
     items = serialize_items(products)
     total = cart_total(products)
 
-    with open(ORDERS_FILE, "a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            timestamp,
-            order_id,
-            customer_name,
-            email,
-            phone,
-            delivery_method,
-            notes,
-            items,
-            total,
-        ])
+    ensure_sheet_header()
+    worksheet = get_gsheet_worksheet()
+    worksheet.append_row([
+        timestamp,
+        order_id,
+        customer_name,
+        email,
+        phone,
+        delivery_method,
+        notes,
+        items,
+        f"{total:.2f}",
+    ])
     return order_id
 
 
@@ -206,23 +243,35 @@ def checkout_form(products: pd.DataFrame) -> None:
             if not customer_name.strip() or not email.strip():
                 st.error("Täytä ainakin nimi ja sähköposti.")
             else:
-                order_id = save_order(customer_name.strip(), email.strip(), phone.strip(), delivery_method, notes.strip(), products)
-                clear_cart()
-                st.success(f"Kiitos! Tilauspyyntösi vastaanotettiin. Tilausnumero: {order_id}")
-                st.balloons()
+                try:
+                    order_id = save_order(
+                        customer_name.strip(),
+                        email.strip(),
+                        phone.strip(),
+                        delivery_method,
+                        notes.strip(),
+                        products,
+                    )
+                    clear_cart()
+                    st.success(f"Kiitos! Tilauspyyntösi vastaanotettiin. Tilausnumero: {order_id}")
+                    st.balloons()
+                except Exception as e:
+                    st.error(f"Tilausta ei voitu tallentaa Google Sheetiin: {e}")
 
 
 def admin_view() -> None:
     st.title("📦 Tilaukset")
     orders = load_orders()
     if orders.empty:
-        st.info("Tilauksia ei ole vielä tallennettu.")
+        st.info("Tilauksia ei ole vielä tallennettu tai yhteys Google Sheetiin ei toimi.")
         return
 
     st.dataframe(orders, use_container_width=True, hide_index=True)
+
+    csv_data = orders.to_csv(index=False).encode("utf-8")
     st.download_button(
         label="Lataa tilaukset CSV:nä",
-        data=ORDERS_FILE.read_bytes(),
+        data=csv_data,
         file_name="orders.csv",
         mime="text/csv",
     )

@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import re
@@ -30,171 +31,172 @@ st.set_page_config(page_title="Pieni hunajapuoti Nina", page_icon="🍯", layout
 
 
 def inject_styles() -> None:
-    st.markdown(
-        '''
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Marck+Script&display=swap');
+    css = """
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Marck+Script&display=swap');
 
-            .stApp {
-                background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
-                font-family: 'Quicksand', sans-serif;
-            }
+        .stApp {
+            background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
+            font-family: 'Quicksand', sans-serif;
+        }
 
-            .block-container {
-                padding-top: 1.2rem;
-                padding-bottom: 2.2rem;
-                max-width: 1180px;
-            }
+        .block-container {
+            padding-top: 1.2rem;
+            padding-bottom: 2.2rem;
+            max-width: 1180px;
+        }
 
-            section[data-testid="stSidebar"],
-            button[kind="header"],
-            [data-testid="collapsedControl"] {
-                display: none !important;
-            }
+        section[data-testid="stSidebar"],
+        button[kind="header"],
+        [data-testid="collapsedControl"] {
+            display: none !important;
+        }
 
-            html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"],
-            [data-testid="stText"], [data-testid="stMetricLabel"], [data-testid="stMetricValue"],
-            .stTextInput label, .stTextArea label, .stSelectbox label {
-                font-family: 'Quicksand', sans-serif;
-            }
+        html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"],
+        [data-testid="stText"], [data-testid="stMetricLabel"], [data-testid="stMetricValue"],
+        .stTextInput label, .stTextArea label, .stSelectbox label {
+            font-family: 'Quicksand', sans-serif;
+        }
 
-            h1, h2, h3 {
-                color: #6f4e18;
-                font-family: 'Quicksand', sans-serif;
-            }
+        h1, h2, h3 {
+            color: #6f4e18;
+            font-family: 'Quicksand', sans-serif;
+        }
 
-            .shop-title {
-                font-family: 'Marck Script', cursive;
-                font-size: 3.1rem;
-                font-weight: 400;
-                color: #7a5216;
-                margin-bottom: 0.2rem;
-                line-height: 1.1;
-            }
+        .shop-title {
+            font-family: 'Marck Script', cursive;
+            font-size: 3.1rem;
+            font-weight: 400;
+            color: #7a5216;
+            margin-bottom: 0.2rem;
+            line-height: 1.1;
+        }
 
-            .shop-subtitle {
-                font-size: 1.1rem;
-                color: #8b6a2b;
-                margin-bottom: 1.2rem;
-            }
+        .shop-subtitle {
+            font-size: 1.1rem;
+            color: #8b6a2b;
+            margin-bottom: 1.2rem;
+        }
 
-            .section-card {
-                background: rgba(255, 248, 235, 0.78);
-                border: 1px solid #e8d7b5;
-                border-radius: 18px;
-                padding: 1rem 1.2rem;
-                margin-bottom: 1rem;
-                box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06);
-            }
+        .section-card {
+            background: rgba(255, 248, 235, 0.78);
+            border: 1px solid #e8d7b5;
+            border-radius: 18px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06);
+        }
 
-            .intro-card {
-                background: rgba(255, 248, 235, 0.86);
-                border: 1px solid #e8d7b5;
-                border-radius: 20px;
-                padding: 1.15rem 1.25rem;
-                margin: 0.8rem 0 1.2rem 0;
-                box-shadow: 0 4px 14px rgba(111, 78, 24, 0.05);
-            }
+        .intro-card {
+            background: rgba(255, 248, 235, 0.86);
+            border: 1px solid #e8d7b5;
+            border-radius: 20px;
+            padding: 1.15rem 1.25rem;
+            margin: 0.8rem 0 1.2rem 0;
+            box-shadow: 0 4px 14px rgba(111, 78, 24, 0.05);
+        }
 
-            .intro-title {
-                color: #7a5216;
-                font-size: 1.2rem;
-                font-weight: 700;
-                margin-bottom: 0.35rem;
-            }
+        .intro-title {
+            color: #7a5216;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
 
-            .intro-text {
-                color: #5f533d;
-                font-size: 1rem;
-                line-height: 1.65;
-            }
+        .intro-text {
+            color: #5f533d;
+            font-size: 1rem;
+            line-height: 1.65;
+        }
 
-            .steps-card {
-                background: rgba(255, 248, 235, 0.7);
-                border: 1px solid #eadab8;
-                border-radius: 18px;
-                padding: 1rem 1.2rem;
-                margin: 1rem 0 1.3rem 0;
-            }
+        .steps-card {
+            background: rgba(255, 248, 235, 0.7);
+            border: 1px solid #eadab8;
+            border-radius: 18px;
+            padding: 1rem 1.2rem;
+            margin: 1rem 0 1.3rem 0;
+        }
 
-            .steps-title {
-                color: #7a5216;
-                font-size: 1.1rem;
-                font-weight: 700;
-                margin-bottom: 0.4rem;
-            }
+        .steps-title {
+            color: #7a5216;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
 
-            .steps-list {
-                color: #5f533d;
-                margin: 0;
-                padding-left: 1.15rem;
-                line-height: 1.7;
-            }
+        .steps-list {
+            color: #5f533d;
+            margin: 0;
+            padding-left: 1.15rem;
+            line-height: 1.7;
+        }
 
-            div[data-testid="stMetric"] {
-                background: #fffaf2;
-                border: 1px solid #ecdcb9;
-                padding: 0.55rem 0.8rem;
-                border-radius: 14px;
-            }
+        div[data-testid="stMetric"] {
+            background: #fffaf2;
+            border: 1px solid #ecdcb9;
+            padding: 0.55rem 0.8rem;
+            border-radius: 14px;
+        }
 
-            div[data-testid="stMetricLabel"] { color: #8b6a2b; }
-            div[data-testid="stMetricValue"] { color: #6f4e18; }
+        div[data-testid="stMetricLabel"] { color: #8b6a2b; }
+        div[data-testid="stMetricValue"] { color: #6f4e18; }
 
-            .stButton > button, .stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
-                background-color: #c48a1d;
-                color: white;
-                border: none;
-                border-radius: 999px;
-                padding: 0.55rem 1.1rem;
-                font-weight: 600;
-                font-family: 'Quicksand', sans-serif;
-            }
+        .stButton > button, .stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
+            background-color: #c48a1d;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 1.1rem;
+            font-weight: 600;
+            font-family: 'Quicksand', sans-serif;
+        }
 
-            .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
-                background-color: #a96f0c;
-                color: white;
-            }
+        .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
+            background-color: #a96f0c;
+            color: white;
+        }
 
-            .small-note { color: #8b6a2b; font-size: 0.95rem; }
-            .product-description { color: #5f533d; min-height: 3em; }
+        .small-note { color: #8b6a2b; font-size: 0.95rem; }
+        .product-description { color: #5f533d; min-height: 3em; }
 
-            .placeholder-box {
-                border: 1px dashed #d9c49b;
-                border-radius: 16px;
-                background: rgba(255,248,235,0.65);
-                color: #8b6a2b;
-                padding: 2.2rem 1rem;
-                text-align: center;
-                margin-bottom: 0.5rem;
-            }
+        .placeholder-box {
+            border: 1px dashed #d9c49b;
+            border-radius: 16px;
+            background: rgba(255,248,235,0.65);
+            color: #8b6a2b;
+            padding: 2.2rem 1rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
 
-            .cart-line {
-                background: rgba(255, 248, 235, 0.78);
-                border: 1px solid #e8d7b5;
-                border-radius: 16px;
-                padding: 0.8rem 1rem;
-                margin-bottom: 0.8rem;
-            }
+        .cart-card {
+            background: rgba(255, 248, 235, 0.82);
+            border: 1px solid #e8d7b5;
+            border-radius: 18px;
+            padding: 1rem 1rem 0.8rem 1rem;
+            margin-bottom: 0.9rem;
+            box-shadow: 0 4px 14px rgba(111, 78, 24, 0.05);
+        }
 
-            .cart-line-title {
-                color: #6f4e18;
-                font-weight: 700;
-                margin-bottom: 0.2rem;
-            }
+        .cart-title {
+            color: #6f4e18;
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 0.2rem;
+        }
 
-            .cart-line-sub {
-                color: #8b6a2b;
-                font-size: 0.95rem;
-            }
+        .cart-sub {
+            color: #8b6a2b;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
 
-            div[data-testid="stTextInput"]:has(input[aria-label="Website"]) {
-                display: none;
-            }
-        </style>
-        ''',
-        unsafe_allow_html=True,
-    )
+        div[data-testid="stTextInput"]:has(input[aria-label="Website"]) {
+            display: none;
+        }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
 
 
 def euro_fi(value: float) -> str:
@@ -205,7 +207,6 @@ def load_products() -> pd.DataFrame:
     df = pd.read_csv(PRODUCTS_FILE)
     df["price"] = df["price"].astype(float)
     df["stock"] = df["stock"].astype(int)
-
     replacements = {
         "Kesähunaja 250 g": "Pehmeä ja kukkainen kesähunaja pieneen arjen herkutteluun.",
         "Kesähunaja 500 g": "Runsas purkillinen pehmeää kesähunajaa koko perheen käyttöön.",
@@ -263,24 +264,6 @@ def clear_last_order() -> None:
     st.session_state.last_email_error = None
 
 
-def cart_dataframe(products: pd.DataFrame) -> pd.DataFrame:
-    rows = []
-    for product_id, qty in st.session_state.cart.items():
-        match = products.loc[products["id"] == product_id]
-        if match.empty:
-            continue
-        product = match.iloc[0]
-        rows.append(
-            {
-                "Tuote": product["name"],
-                "Määrä": qty,
-                "á-hinta": euro_fi(float(product["price"])),
-                "Yhteensä": euro_fi(float(product["price"]) * qty),
-            }
-        )
-    return pd.DataFrame(rows)
-
-
 def cart_total(products: pd.DataFrame) -> float:
     total = 0.0
     for product_id, qty in st.session_state.cart.items():
@@ -335,14 +318,25 @@ def ensure_sheet_header() -> None:
     worksheet = get_gsheet_worksheet()
     expected_header = [
         "timestamp", "order_id", "customer_name", "email", "phone",
-        "delivery_method", "notes", "items", "total_eur",
+        "delivery_method", "street_address", "postal_code", "city",
+        "notes", "items", "total_eur",
     ]
     current_row = worksheet.row_values(1)
     if current_row != expected_header:
-        worksheet.update("A1:I1", [expected_header])
+        worksheet.update("A1:L1", [expected_header])
 
 
-def save_order(customer_name: str, email: str, phone: str, delivery_method: str, notes: str, products: pd.DataFrame) -> tuple[str, str, float, str]:
+def save_order(
+    customer_name: str,
+    email: str,
+    phone: str,
+    delivery_method: str,
+    street_address: str,
+    postal_code: str,
+    city: str,
+    notes: str,
+    products: pd.DataFrame,
+) -> tuple[str, str, float, str]:
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     items = serialize_items(products)
     total = cart_total(products)
@@ -352,7 +346,8 @@ def save_order(customer_name: str, email: str, phone: str, delivery_method: str,
     order_id = next_order_id(worksheet)
     worksheet.append_row([
         timestamp, order_id, customer_name, email, phone,
-        delivery_method, notes, items, total,
+        delivery_method, street_address, postal_code, city,
+        notes, items, total,
     ])
     return order_id, timestamp, total, items
 
@@ -373,10 +368,27 @@ def send_email(subject: str, body: str, to_email: str, cc_email: str | None = No
         server.send_message(msg, to_addrs=recipients)
 
 
-def send_owner_notification(customer_name: str, customer_email: str, phone: str, delivery_method: str, notes: str, order_id: str, timestamp: str, total: float, products: pd.DataFrame) -> None:
+def send_owner_notification(
+    customer_name: str,
+    customer_email: str,
+    phone: str,
+    delivery_method: str,
+    street_address: str,
+    postal_code: str,
+    city: str,
+    notes: str,
+    order_id: str,
+    timestamp: str,
+    total: float,
+    products: pd.DataFrame,
+) -> None:
     app_cfg = st.secrets["app_config"]
     lines = "\n".join(order_lines(products))
     sheet_url = app_cfg["google_sheet_url"]
+
+    address_block = "-"
+    if delivery_method != "Nouto":
+        address_block = f"{street_address}, {postal_code} {city}"
 
     draft_reply = f"""Hei {customer_name},
 
@@ -404,6 +416,7 @@ Asiakas: {customer_name}
 Sähköposti: {customer_email}
 Puhelin: {phone}
 Toimitustapa: {delivery_method}
+Toimitusosoite: {address_block}
 Lisätiedot: {notes or '-'}
 
 Tilauksen sisältö:
@@ -418,12 +431,15 @@ Valmis ehdotus asiakkaalle lähetettäväksi tilausvahvistukseksi:
 
 {draft_reply}
 """
-
     send_email(owner_subject, owner_body, app_cfg["owner_email"], cc_email=app_cfg.get("cc_email", None))
 
 
 def build_order_receipt_text(order_data: dict) -> str:
     item_lines = order_data["items"].replace(" | ", "\n")
+    address_block = "-"
+    if order_data["delivery_method"] != "Nouto":
+        address_block = f"{order_data['street_address']}, {order_data['postal_code']} {order_data['city']}"
+
     return f"""Pieni hunajapuoti Nina
 
 Tilausnumero: {order_data['order_id']}
@@ -433,6 +449,7 @@ Asiakas: {order_data['customer_name']}
 Sähköposti: {order_data['email']}
 Puhelin: {order_data['phone']}
 Toimitustapa: {order_data['delivery_method']}
+Toimitusosoite: {address_block}
 
 Tilauksen sisältö:
 {item_lines}
@@ -450,7 +467,7 @@ def show_last_order_box() -> None:
         return
 
     order_data = st.session_state.last_order
-    st.success(f"Kiitos! Tilauspyyntösi vastaanotettiin. Tilausnumero: {order_data['order_id']}")
+    st.success(f"Kiitos! Tilaus vastaanotettiin. Tilausnumero: {order_data['order_id']}")
     st.info("Tilauksesi on käsittelyssä ja saat tilausvahvistuksen sähköpostiisi hetken kuluttua.")
 
     if st.session_state.last_email_error:
@@ -499,9 +516,9 @@ def render_intro() -> None:
             <div class="steps-title">Näin tilaus etenee</div>
             <ol class="steps-list">
                 <li>Valitse tuotteet koriin.</li>
+                <li>Tarkista ja muokkaa ostoskoria.</li>
                 <li>Lähetä tilaus.</li>
                 <li>Saat tilausvahvistuksen sähköpostiisi.</li>
-                <li>Nouto tai toimitus sovitaan tilausvahvistuksessa.</li>
             </ol>
         </div>
         ''',
@@ -566,25 +583,54 @@ def cart_view(products: pd.DataFrame) -> None:
 
         st.markdown(
             f'''
-            <div class="cart-line">
-                <div class="cart-line-title">{product["name"]}</div>
-                <div class="cart-line-sub">á-hinta {euro_fi(float(product["price"]))} • yhteensä {euro_fi(line_total)}</div>
+            <div class="cart-card">
+                <div class="cart-title">{product["name"]}</div>
+                <div class="cart-sub">á-hinta {euro_fi(float(product["price"]))} • yhteensä {euro_fi(line_total)}</div>
             </div>
             ''',
             unsafe_allow_html=True,
         )
 
-        new_qty = st.number_input(
-            f"{product['name']} (kpl)",
-            min_value=0,
-            max_value=max(0, int(product["stock"])),
-            value=int(current_qty),
-            key=f"cart_edit_{product_id}",
-        )
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            new_qty = st.number_input(
+                f"{product['name']} (kpl)",
+                min_value=0,
+                max_value=max(0, int(product["stock"])),
+                value=int(current_qty),
+                key=f"cart_edit_{product_id}",
+            )
+        with c2:
+            st.write("")
+            st.write("")
+            if st.button("Poista", key=f"remove_{product_id}", use_container_width=True):
+                update_cart(product_id, 0)
+                clear_last_order()
+                st.rerun()
+
         if new_qty != current_qty:
             update_cart(product_id, int(new_qty))
             clear_last_order()
             st.rerun()
+
+    st.markdown("#### Lisää vielä tuote ostoskoriin")
+    add_col1, add_col2, add_col3 = st.columns([3, 1, 1])
+
+    with add_col1:
+        options = [""] + list(products["name"])
+        selected_name = st.selectbox("Valitse tuote", options, key="cart_add_product")
+    with add_col2:
+        add_qty = st.number_input("Määrä", min_value=1, value=1, key="cart_add_qty")
+    with add_col3:
+        st.write("")
+        st.write("")
+        if st.button("Lisää", key="cart_add_button", use_container_width=True):
+            if selected_name:
+                match = products.loc[products["name"] == selected_name]
+                if not match.empty:
+                    add_to_cart(int(match.iloc[0]["id"]), int(add_qty))
+                    clear_last_order()
+                    st.rerun()
 
     st.subheader(f"Yhteensä: {euro_fi(cart_total(products))}")
 
@@ -607,7 +653,16 @@ def is_valid_phone(phone: str) -> bool:
     return len(digits) >= 7
 
 
-def validate_order_form(customer_name: str, email: str, phone: str, honeypot: str) -> str | None:
+def validate_order_form(
+    customer_name: str,
+    email: str,
+    phone: str,
+    delivery_method: str,
+    street_address: str,
+    postal_code: str,
+    city: str,
+    honeypot: str,
+) -> str | None:
     if honeypot.strip():
         return "Lähetystä ei voitu käsitellä. Yritä uudelleen hetken kuluttua."
     if len(customer_name.strip()) < 2:
@@ -618,6 +673,14 @@ def validate_order_form(customer_name: str, email: str, phone: str, honeypot: st
         return "Tarkista sähköpostiosoite."
     if not is_valid_phone(phone):
         return "Tarkista puhelinnumero."
+
+    if delivery_method != "Nouto":
+        if not street_address.strip():
+            return "Täytä katuosoite."
+        if not postal_code.strip():
+            return "Täytä postinumero."
+        if not city.strip():
+            return "Täytä postitoimipaikka."
 
     seconds_since_last = time.time() - float(st.session_state.last_submit_ts)
     if seconds_since_last < MIN_SECONDS_BETWEEN_ORDERS:
@@ -636,16 +699,29 @@ def checkout_form(products: pd.DataFrame) -> None:
         return
 
     with st.form("checkout_form"):
+        st.markdown("#### Tilaajan tiedot")
         customer_name = st.text_input("Nimi *")
         email = st.text_input("Sähköposti *")
         phone = st.text_input("Puhelin")
         delivery_method = st.selectbox("Toimitustapa", ["Nouto", "Paikallinen toimitus", "Postitus"])
+
+        st.markdown("#### Toimitusosoite")
+        street_address = st.text_input("Katuosoite")
+        col1, col2 = st.columns(2)
+        with col1:
+            postal_code = st.text_input("Postinumero")
+        with col2:
+            city = st.text_input("Postitoimipaikka")
+
         notes = st.text_area("Lisätiedot")
         honeypot = st.text_input("Website", value="")
         submitted = st.form_submit_button("Lähetä tilaus")
 
         if submitted:
-            validation_error = validate_order_form(customer_name, email, phone, honeypot)
+            validation_error = validate_order_form(
+                customer_name, email, phone, delivery_method,
+                street_address, postal_code, city, honeypot
+            )
             if validation_error:
                 st.error(validation_error)
                 return
@@ -657,6 +733,9 @@ def checkout_form(products: pd.DataFrame) -> None:
                         email.strip(),
                         phone.strip(),
                         delivery_method,
+                        street_address.strip(),
+                        postal_code.strip(),
+                        city.strip(),
                         notes.strip(),
                         products,
                     )
@@ -671,6 +750,9 @@ def checkout_form(products: pd.DataFrame) -> None:
                             customer_email=email.strip(),
                             phone=phone.strip(),
                             delivery_method=delivery_method,
+                            street_address=street_address.strip(),
+                            postal_code=postal_code.strip(),
+                            city=city.strip(),
                             notes=notes.strip(),
                             order_id=order_id,
                             timestamp=timestamp,
@@ -687,6 +769,9 @@ def checkout_form(products: pd.DataFrame) -> None:
                     "email": email.strip(),
                     "phone": phone.strip(),
                     "delivery_method": delivery_method,
+                    "street_address": street_address.strip(),
+                    "postal_code": postal_code.strip(),
+                    "city": city.strip(),
                     "items": items,
                     "total": total,
                 }

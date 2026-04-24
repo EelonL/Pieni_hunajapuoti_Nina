@@ -35,82 +35,30 @@ def inject_styles() -> None:
         """
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Marck+Script&display=swap');
-
-            .stApp {
-                background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
-                font-family: 'Quicksand', sans-serif;
-            }
-            .block-container {
-                padding-top: 1.4rem;
-                padding-bottom: 2rem;
-            }
+            .stApp { background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%); font-family: 'Quicksand', sans-serif; }
+            .block-container { padding-top: 1.4rem; padding-bottom: 2rem; }
             html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"],
             [data-testid="stText"], [data-testid="stMetricLabel"], [data-testid="stMetricValue"],
-            .stTextInput label, .stTextArea label, .stSelectbox label {
-                font-family: 'Quicksand', sans-serif;
-            }
-            h1, h2, h3 {
-                color: #6f4e18;
-                font-family: 'Quicksand', sans-serif;
-            }
-            .shop-title {
-                font-family: 'Marck Script', cursive;
-                font-size: 3.2rem;
-                font-weight: 400;
-                color: #7a5216;
-                margin-bottom: 0.15rem;
-                line-height: 1.1;
-            }
-            .shop-subtitle {
-                font-size: 1.1rem;
-                color: #8b6a2b;
-                margin-bottom: 1.4rem;
-            }
-            .section-card {
-                background: rgba(255, 248, 235, 0.75);
-                border: 1px solid #e8d7b5;
-                border-radius: 18px;
-                padding: 1rem 1.1rem;
-                margin-bottom: 1rem;
-                box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06);
-            }
-            div[data-testid="stMetric"] {
-                background: #fffaf2;
-                border: 1px solid #ecdcb9;
-                padding: 0.55rem 0.8rem;
-                border-radius: 14px;
-            }
+            .stTextInput label, .stTextArea label, .stSelectbox label { font-family: 'Quicksand', sans-serif; }
+            h1, h2, h3 { color: #6f4e18; font-family: 'Quicksand', sans-serif; }
+            .shop-title { font-family: 'Marck Script', cursive; font-size: 3.2rem; font-weight: 400; color: #7a5216; margin-bottom: 0.15rem; line-height: 1.1; }
+            .shop-subtitle { font-size: 1.1rem; color: #8b6a2b; margin-bottom: 1.4rem; }
+            .section-card { background: rgba(255, 248, 235, 0.75); border: 1px solid #e8d7b5; border-radius: 18px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06); }
+            div[data-testid="stMetric"] { background: #fffaf2; border: 1px solid #ecdcb9; padding: 0.55rem 0.8rem; border-radius: 14px; }
             div[data-testid="stMetricLabel"] { color: #8b6a2b; }
             div[data-testid="stMetricValue"] { color: #6f4e18; }
             .stButton > button, .stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
-                background-color: #c48a1d;
-                color: white;
-                border: none;
-                border-radius: 999px;
-                padding: 0.55rem 1.1rem;
-                font-weight: 600;
-                font-family: 'Quicksand', sans-serif;
+                background-color: #c48a1d; color: white; border: none; border-radius: 999px;
+                padding: 0.55rem 1.1rem; font-weight: 600; font-family: 'Quicksand', sans-serif;
             }
             .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
-                background-color: #a96f0c;
-                color: white;
+                background-color: #a96f0c; color: white;
             }
-            .small-note {
-                color: #8b6a2b;
-                font-size: 0.95rem;
-            }
-            .product-description {
-                color: #5f533d;
-                min-height: 3em;
-            }
+            .small-note { color: #8b6a2b; font-size: 0.95rem; }
+            .product-description { color: #5f533d; min-height: 3em; }
             .placeholder-box {
-                border: 1px dashed #d9c49b;
-                border-radius: 16px;
-                background: rgba(255,248,235,0.65);
-                color: #8b6a2b;
-                padding: 2.2rem 1rem;
-                text-align: center;
-                margin-bottom: 0.5rem;
+                border: 1px dashed #d9c49b; border-radius: 16px; background: rgba(255,248,235,0.65);
+                color: #8b6a2b; padding: 2.2rem 1rem; text-align: center; margin-bottom: 0.5rem;
             }
         </style>
         """,
@@ -145,7 +93,6 @@ def init_state() -> None:
         "last_order": None,
         "last_email_error": None,
         "last_submit_ts": 0.0,
-        "human_error_message": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -171,7 +118,6 @@ def clear_cart() -> None:
 def clear_last_order() -> None:
     st.session_state.last_order = None
     st.session_state.last_email_error = None
-    st.session_state.human_error_message = None
 
 
 def cart_dataframe(products: pd.DataFrame) -> pd.DataFrame:
@@ -226,15 +172,8 @@ def order_lines(products: pd.DataFrame) -> list[str]:
 def ensure_sheet_header() -> None:
     worksheet = get_gsheet_worksheet()
     expected_header = [
-        "timestamp",
-        "order_id",
-        "customer_name",
-        "email",
-        "phone",
-        "delivery_method",
-        "notes",
-        "items",
-        "total_eur",
+        "timestamp", "order_id", "customer_name", "email", "phone",
+        "delivery_method", "notes", "items", "total_eur",
     ]
     current_row = worksheet.row_values(1)
     if current_row != expected_header:
@@ -250,15 +189,8 @@ def save_order(customer_name: str, email: str, phone: str, delivery_method: str,
     ensure_sheet_header()
     worksheet = get_gsheet_worksheet()
     worksheet.append_row([
-        timestamp,
-        order_id,
-        customer_name,
-        email,
-        phone,
-        delivery_method,
-        notes,
-        items,
-        f"{total:.2f}",
+        timestamp, order_id, customer_name, email, phone,
+        delivery_method, notes, items, f"{total:.2f}",
     ])
     return order_id, timestamp, total, items
 
@@ -272,7 +204,6 @@ def send_email(subject: str, body: str, to_email: str, cc_email: str | None = No
     if cc_email:
         msg["Cc"] = cc_email
     msg.set_content(body)
-
     recipients = [to_email] + ([cc_email] if cc_email else [])
 
     with smtplib.SMTP_SSL(smtp_cfg["host"], int(smtp_cfg["port"])) as server:
@@ -326,12 +257,7 @@ Valmis ehdotus asiakkaalle lähetettäväksi tilausvahvistukseksi:
 {draft_reply}
 """
 
-    send_email(
-        owner_subject,
-        owner_body,
-        app_cfg["owner_email"],
-        cc_email=app_cfg.get("cc_email", None),
-    )
+    send_email(owner_subject, owner_body, app_cfg["owner_email"], cc_email=app_cfg.get("cc_email", None))
 
 
 def build_order_receipt_text(order_data: dict) -> str:
@@ -394,7 +320,6 @@ def render_missing_image_placeholder() -> None:
 
 def product_card(product: pd.Series) -> None:
     image_path = get_product_image(str(product["name"]))
-
     with st.container(border=True):
         if image_path:
             st.image(str(image_path), use_container_width=True)
@@ -469,14 +394,15 @@ def cart_view(products: pd.DataFrame) -> None:
 
 
 def is_valid_email(email: str) -> bool:
-    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email.strip()))
+    email = email.strip()
+    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email))
 
 
 def is_valid_phone(phone: str) -> bool:
-    if not phone.strip():
+    phone = phone.strip()
+    if not phone:
         return True
-    cleaned = re.sub(r"[^0-9+ ]", "", phone).strip()
-    digits = re.sub(r"\D", "", cleaned)
+    digits = re.sub(r"\D", "", phone)
     return len(digits) >= 7
 
 
@@ -491,19 +417,18 @@ def validate_order_form(customer_name: str, email: str, phone: str, honeypot: st
         return "Tarkista sähköpostiosoite."
     if not is_valid_phone(phone):
         return "Tarkista puhelinnumero."
+
     seconds_since_last = time.time() - float(st.session_state.last_submit_ts)
     if seconds_since_last < MIN_SECONDS_BETWEEN_ORDERS:
         remaining = int(MIN_SECONDS_BETWEEN_ORDERS - seconds_since_last) + 1
         return f"Odota vielä hetki ennen uuden tilauksen lähettämistä ({remaining} s)."
+
     return None
 
 
 def checkout_form(products: pd.DataFrame) -> None:
     st.markdown("### Lähetä tilauspyyntö")
     show_last_order_box()
-
-    if st.session_state.human_error_message:
-        st.warning(st.session_state.human_error_message)
 
     if not st.session_state.cart:
         st.caption("Lisää ensin tuotteita koriin.")
@@ -520,11 +445,10 @@ def checkout_form(products: pd.DataFrame) -> None:
         submitted = st.form_submit_button("Lähetä tilaus")
 
         if submitted:
-            st.session_state.human_error_message = None
             validation_error = validate_order_form(customer_name, email, phone, honeypot)
             if validation_error:
-                st.session_state.human_error_message = validation_error
-                st.rerun()
+                st.error(validation_error)
+                return
 
             try:
                 with st.spinner("Tallennetaan tilausta..."):
@@ -570,9 +494,10 @@ def checkout_form(products: pd.DataFrame) -> None:
                 clear_cart()
                 st.balloons()
                 st.rerun()
+
             except Exception:
-                st.session_state.human_error_message = "Tilauksen tallennuksessa tapahtui häiriö. Yritä hetken kuluttua uudelleen."
-                st.rerun()
+                st.error("Tilauksen tallennuksessa tapahtui häiriö. Yritä hetken kuluttua uudelleen.")
+                return
 
 
 def main() -> None:

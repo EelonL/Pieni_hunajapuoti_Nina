@@ -12,9 +12,102 @@ import streamlit as st
 
 BASE_DIR = Path(__file__).parent
 PRODUCTS_FILE = BASE_DIR / "products.csv"
+IMAGES_DIR = BASE_DIR / "assets" / "images"
 SHEET_NAME = "Hunajapuodin tilaukset"
 
-st.set_page_config(page_title="Hunajapuoti", page_icon="🍯", layout="wide")
+IMAGE_MAP = {
+    "Kesähunaja 250 g": IMAGES_DIR / "kesahunaja_250.png",
+    "Kesähunaja 500 g": IMAGES_DIR / "kesahunaja_500.png",
+    "Metsähunaja 250 g": IMAGES_DIR / "metsahunaja_250.png",
+    "Lahjapakkaus": IMAGES_DIR / "lahjapakkaus.png",
+}
+
+HERO_IMAGE = IMAGES_DIR / "hero_banner.png"
+
+st.set_page_config(page_title="Pieni hunajapuoti Nina", page_icon="🍯", layout="wide")
+
+
+def inject_styles() -> None:
+    st.markdown(
+        """
+        <style>
+            .stApp {
+                background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
+            }
+
+            .block-container {
+                padding-top: 1.4rem;
+                padding-bottom: 2rem;
+            }
+
+            h1, h2, h3 {
+                color: #6f4e18;
+            }
+
+            .shop-title {
+                font-size: 2.6rem;
+                font-weight: 700;
+                color: #6f4e18;
+                margin-bottom: 0.15rem;
+            }
+
+            .shop-subtitle {
+                font-size: 1.1rem;
+                color: #8b6a2b;
+                margin-bottom: 1.4rem;
+            }
+
+            .section-card {
+                background: rgba(255, 248, 235, 0.75);
+                border: 1px solid #e8d7b5;
+                border-radius: 18px;
+                padding: 1rem 1.1rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06);
+            }
+
+            div[data-testid="stMetric"] {
+                background: #fffaf2;
+                border: 1px solid #ecdcb9;
+                padding: 0.55rem 0.8rem;
+                border-radius: 14px;
+            }
+
+            div[data-testid="stMetricLabel"] {
+                color: #8b6a2b;
+            }
+
+            div[data-testid="stMetricValue"] {
+                color: #6f4e18;
+            }
+
+            .stButton > button, .stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
+                background-color: #c48a1d;
+                color: white;
+                border: none;
+                border-radius: 999px;
+                padding: 0.55rem 1.1rem;
+                font-weight: 600;
+            }
+
+            .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
+                background-color: #a96f0c;
+                color: white;
+            }
+
+            .small-note {
+                color: #8b6a2b;
+                font-size: 0.95rem;
+            }
+
+            .product-description {
+                color: #5f533d;
+                min-height: 3em;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def load_products() -> pd.DataFrame:
@@ -22,6 +115,13 @@ def load_products() -> pd.DataFrame:
     df["price"] = df["price"].astype(float)
     df["stock"] = df["stock"].astype(int)
     return df
+
+
+def get_product_image(product_name: str) -> Path | None:
+    image_path = IMAGE_MAP.get(product_name)
+    if image_path and image_path.exists():
+        return image_path
+    return None
 
 
 def get_gsheet_worksheet():
@@ -71,8 +171,8 @@ def cart_dataframe(products: pd.DataFrame) -> pd.DataFrame:
             {
                 "Tuote": product["name"],
                 "Määrä": qty,
-                "á-hinta (€)": product["price"],
-                "Yhteensä (€)": round(product["price"] * qty, 2),
+                "á-hinta (€)": f"{product['price']:.2f}",
+                "Yhteensä (€)": f"{product['price'] * qty:.2f}",
             }
         )
     return pd.DataFrame(rows)
@@ -240,7 +340,7 @@ Valmis ehdotus asiakkaalle lähetettäväksi tilausvahvistukseksi:
 
 def build_order_receipt_text(order_data: dict) -> str:
     item_lines = order_data["items"].replace(" | ", "\n")
-    return f"""Hunajapuoti
+    return f"""Pieni hunajapuoti Nina
 
 Tilausnumero: {order_data['order_id']}
 Aika: {order_data['timestamp']}
@@ -281,15 +381,34 @@ def show_last_order_box() -> None:
         data=receipt_text.encode("utf-8"),
         file_name=f"tilaus_{order_data['order_id']}.txt",
         mime="text/plain",
-        use_container_width=False,
+    )
+
+
+def render_hero() -> None:
+    if HERO_IMAGE.exists():
+        st.image(str(HERO_IMAGE), use_container_width=True)
+
+    st.markdown('<div class="shop-title">Pieni hunajapuoti Nina</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="shop-subtitle">Paikallista hunajaa suoraan tuottajalta — lämmin, pieni ja luonnonläheinen hunajapuoti.</div>',
+        unsafe_allow_html=True,
     )
 
 
 def product_card(product: pd.Series) -> None:
+    image_path = get_product_image(str(product["name"]))
+
     with st.container(border=True):
+        if image_path:
+            st.image(str(image_path), use_container_width=True)
+
         st.subheader(product["name"])
-        st.write(product["description"])
-        left, right = st.columns([1, 1])
+        st.markdown(
+            f'<div class="product-description">{product["description"]}</div>',
+            unsafe_allow_html=True,
+        )
+
+        left, right = st.columns(2)
         with left:
             st.metric("Hinta", f"{product['price']:.2f} €")
         with right:
@@ -309,10 +428,10 @@ def product_card(product: pd.Series) -> None:
 
 
 def storefront(products: pd.DataFrame) -> None:
-    st.title("🍯 Hunajapuoti")
-    st.write("Paikallista hunajaa suoraan tuottajalta. Tämä on kevyt verkkokauppademo tilausten vastaanottoon.")
+    render_hero()
 
-    st.markdown("### Tuotteet")
+    st.markdown('<div class="section-card"><h3>Tuotteet</h3><div class="small-note">Pehmeää kesähunajaa, tummempaa metsähunajaa ja lahjapakkaus luonnon ystävälle.</div></div>', unsafe_allow_html=True)
+
     cols = st.columns(2)
     for idx, (_, product) in enumerate(products.iterrows()):
         with cols[idx % 2]:
@@ -424,11 +543,13 @@ def checkout_form(products: pd.DataFrame) -> None:
 
 def main() -> None:
     init_state()
+    inject_styles()
     products = load_products()
 
-    st.sidebar.markdown("### Pieni hunajapuoti")
+    st.sidebar.markdown("### Pieni hunajapuoti Nina")
     st.sidebar.markdown("---")
-    st.sidebar.write("Demo ilman maksamista tai kirjautumista.")
+    st.sidebar.write("Paikallista hunajaa suoraan tuottajalta.")
+    st.sidebar.caption("Demo ilman maksamista tai kirjautumista.")
 
     storefront(products)
     st.markdown("---")

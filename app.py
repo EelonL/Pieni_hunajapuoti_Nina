@@ -169,6 +169,25 @@ def inject_styles() -> None:
                 margin-bottom: 0.5rem;
             }
 
+            .cart-line {
+                background: rgba(255, 248, 235, 0.78);
+                border: 1px solid #e8d7b5;
+                border-radius: 16px;
+                padding: 0.8rem 1rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .cart-line-title {
+                color: #6f4e18;
+                font-weight: 700;
+                margin-bottom: 0.2rem;
+            }
+
+            .cart-line-sub {
+                color: #8b6a2b;
+                font-size: 0.95rem;
+            }
+
             div[data-testid="stTextInput"]:has(input[aria-label="Website"]) {
                 display: none;
             }
@@ -480,7 +499,7 @@ def render_intro() -> None:
             <div class="steps-title">Näin tilaus etenee</div>
             <ol class="steps-list">
                 <li>Valitse tuotteet koriin.</li>
-                <li>Lähetä tilauspyyntö.</li>
+                <li>Lähetä tilaus.</li>
                 <li>Saat tilausvahvistuksen sähköpostiisi.</li>
                 <li>Nouto tai toimitus sovitaan tilausvahvistuksessa.</li>
             </ol>
@@ -538,20 +557,23 @@ def cart_view(products: pd.DataFrame) -> None:
         st.info("Ostoskori on vielä tyhjä. Valitse ensin tuotteita yllä olevasta valikoimasta.")
         return
 
-    cart_df = cart_dataframe(products)
-    if cart_df.empty:
-        st.info("Korissa ei ole tuotteita.")
-        return
-
-    st.dataframe(cart_df, use_container_width=True, hide_index=True)
-    st.subheader(f"Yhteensä: {euro_fi(cart_total(products))}")
-
-    st.markdown("#### Muokkaa ostoskoria")
     for product_id, current_qty in list(st.session_state.cart.items()):
         match = products.loc[products["id"] == product_id]
         if match.empty:
             continue
         product = match.iloc[0]
+        line_total = float(product["price"]) * int(current_qty)
+
+        st.markdown(
+            f'''
+            <div class="cart-line">
+                <div class="cart-line-title">{product["name"]}</div>
+                <div class="cart-line-sub">á-hinta {euro_fi(float(product["price"]))} • yhteensä {euro_fi(line_total)}</div>
+            </div>
+            ''',
+            unsafe_allow_html=True,
+        )
+
         new_qty = st.number_input(
             f"{product['name']} (kpl)",
             min_value=0,
@@ -563,6 +585,8 @@ def cart_view(products: pd.DataFrame) -> None:
             update_cart(product_id, int(new_qty))
             clear_last_order()
             st.rerun()
+
+    st.subheader(f"Yhteensä: {euro_fi(cart_total(products))}")
 
     if st.button("Tyhjennä kori"):
         clear_cart()
@@ -604,7 +628,7 @@ def validate_order_form(customer_name: str, email: str, phone: str, honeypot: st
 
 
 def checkout_form(products: pd.DataFrame) -> None:
-    st.markdown("### Lähetä tilauspyyntö")
+    st.markdown("### Lähetä tilaus")
     show_last_order_box()
 
     if not st.session_state.cart:

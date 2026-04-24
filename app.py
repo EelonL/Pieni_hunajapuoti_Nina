@@ -31,8 +31,11 @@ def inject_styles() -> None:
     st.markdown(
         """
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Marck+Script&display=swap');
+
             .stApp {
                 background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
+                font-family: 'Quicksand', sans-serif;
             }
 
             .block-container {
@@ -40,15 +43,24 @@ def inject_styles() -> None:
                 padding-bottom: 2rem;
             }
 
+            html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"], 
+            [data-testid="stText"], [data-testid="stMetricLabel"], [data-testid="stMetricValue"],
+            .stTextInput label, .stTextArea label, .stSelectbox label {
+                font-family: 'Quicksand', sans-serif;
+            }
+
             h1, h2, h3 {
                 color: #6f4e18;
+                font-family: 'Quicksand', sans-serif;
             }
 
             .shop-title {
-                font-size: 2.6rem;
-                font-weight: 700;
-                color: #6f4e18;
+                font-family: 'Marck Script', cursive;
+                font-size: 3.2rem;
+                font-weight: 400;
+                color: #7a5216;
                 margin-bottom: 0.15rem;
+                line-height: 1.1;
             }
 
             .shop-subtitle {
@@ -88,6 +100,7 @@ def inject_styles() -> None:
                 border-radius: 999px;
                 padding: 0.55rem 1.1rem;
                 font-weight: 600;
+                font-family: 'Quicksand', sans-serif;
             }
 
             .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
@@ -114,6 +127,7 @@ def load_products() -> pd.DataFrame:
     df = pd.read_csv(PRODUCTS_FILE)
     df["price"] = df["price"].astype(float)
     df["stock"] = df["stock"].astype(int)
+    df.loc[df["name"] == "Lahjapakkaus", "description"] = "Kaunis hunajalahja kolmella pienellä purkilla."
     return df
 
 
@@ -408,11 +422,7 @@ def product_card(product: pd.Series) -> None:
             unsafe_allow_html=True,
         )
 
-        left, right = st.columns(2)
-        with left:
-            st.metric("Hinta", f"{product['price']:.2f} €")
-        with right:
-            st.metric("Varastossa", int(product["stock"]))
+        st.metric("Hinta", f"{product['price']:.2f} €")
 
         qty = st.number_input(
             f"Määrä tuotteelle {product['id']}",

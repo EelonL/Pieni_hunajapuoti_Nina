@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import smtplib
 import time
-import uuid
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
@@ -32,7 +31,7 @@ st.set_page_config(page_title="Pieni hunajapuoti Nina", page_icon="🍯", layout
 
 def inject_styles() -> None:
     st.markdown(
-        """
+        '''
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Marck+Script&display=swap');
             .stApp { background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%); font-family: 'Quicksand', sans-serif; }
@@ -60,10 +59,18 @@ def inject_styles() -> None:
                 border: 1px dashed #d9c49b; border-radius: 16px; background: rgba(255,248,235,0.65);
                 color: #8b6a2b; padding: 2.2rem 1rem; text-align: center; margin-bottom: 0.5rem;
             }
+            /* Piilota honeypot-kenttä */
+            div[data-testid="stTextInput"]:has(input[aria-label="Website"]) {
+                display: none;
+            }
         </style>
-        """,
+        ''',
         unsafe_allow_html=True,
     )
+
+
+def euro_fi(value: float) -> str:
+    return f"{value:.2f}".replace(".", ",") + " €"
 
 
 def load_products() -> pd.DataFrame:
@@ -131,8 +138,8 @@ def cart_dataframe(products: pd.DataFrame) -> pd.DataFrame:
             {
                 "Tuote": product["name"],
                 "Määrä": qty,
-                "á-hinta (€)": f"{product['price']:.2f}",
-                "Yhteensä (€)": f"{product['price'] * qty:.2f}",
+                "á-hinta": euro_fi(float(product["price"])),
+                "Yhteensä": euro_fi(float(product["price"]) * qty),
             }
         )
     return pd.DataFrame(rows)
@@ -154,7 +161,7 @@ def serialize_items(products: pd.DataFrame) -> str:
         if not match.empty:
             product = match.iloc[0]
             line_total = float(product["price"]) * int(qty)
-            parts.append(f"{product['name']} x {qty} = {line_total:.2f} €")
+            parts.append(f"{product['name']} x {qty} = {euro_fi(line_total)}")
     return " | ".join(parts)
 
 
@@ -165,8 +172,27 @@ def order_lines(products: pd.DataFrame) -> list[str]:
         if not match.empty:
             product = match.iloc[0]
             line_total = float(product["price"]) * int(qty)
-            lines.append(f"- {product['name']} x {qty} = {line_total:.2f} €")
+            lines.append(f"- {product['name']} x {qty} = {euro_fi(line_total)}")
     return lines
+
+
+def next_order_id(worksheet) -> str:
+    today = datetime.now().strftime("%Y%m%d")
+    prefix = f"HN-{today}-"
+    try:
+        order_ids = worksheet.col_values(2)[1:]
+    except Exception:
+        order_ids = []
+
+    max_seq = 0
+    for oid in order_ids:
+        if oid.startswith(prefix):
+            try:
+                seq = int(oid.split("-")[-1])
+                max_seq = max(max_seq, seq)
+            except Exception:
+                pass
+    return f"{prefix}{max_seq + 1:03d}"
 
 
 def ensure_sheet_header() -> None:
@@ -181,16 +207,16 @@ def ensure_sheet_header() -> None:
 
 
 def save_order(customer_name: str, email: str, phone: str, delivery_method: str, notes: str, products: pd.DataFrame) -> tuple[str, str, float, str]:
-    order_id = str(uuid.uuid4())[:8].upper()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     items = serialize_items(products)
     total = cart_total(products)
 
     ensure_sheet_header()
     worksheet = get_gsheet_worksheet()
+    order_id = next_order_id(worksheet)
     worksheet.append_row([
         timestamp, order_id, customer_name, email, phone,
-        delivery_method, notes, items, f"{total:.2f}",
+        delivery_method, notes, items, total,
     ])
     return order_id, timestamp, total, items
 
@@ -223,7 +249,7 @@ kiitos tilauksestasi Hunajapuodista.
 Olemme vastaanottaneet tilauksesi:
 {lines}
 
-Yhteensä: {total:.2f} €
+Yhteensä: {euro_fi(total)}
 
 Tilauksesi on käsittelyssä. Vahvistamme vielä erikseen tuotteiden saatavuuden ja lähetämme sinulle tilausvahvistuksen sähköpostitse pian.
 
@@ -247,7 +273,7 @@ Lisätiedot: {notes or '-'}
 Tilauksen sisältö:
 {lines}
 
-Yhteensä: {total:.2f} €
+Yhteensä: {euro_fi(total)}
 
 Google Sheet:
 {sheet_url}
@@ -275,7 +301,7 @@ Toimitustapa: {order_data['delivery_method']}
 Tilauksen sisältö:
 {item_lines}
 
-Yhteensä: {order_data['total']:.2f} €
+Yhteensä: {euro_fi(order_data['total'])}
 
 Tilauksesi on käsittelyssä ja saat tilausvahvistuksen sähköpostiisi hetken kuluttua.
 """
@@ -328,7 +354,7 @@ def product_card(product: pd.Series) -> None:
 
         st.subheader(product["name"])
         st.markdown(f'<div class="product-description">{product["description"]}</div>', unsafe_allow_html=True)
-        st.metric("Hinta", f"{product['price']:.2f} €")
+        st.metric("Hinta", euro_fi(float(product["price"])))
 
         qty = st.number_input(
             f"Määrä tuotteelle {product['id']}",
@@ -367,7 +393,7 @@ def cart_view(products: pd.DataFrame) -> None:
         return
 
     st.dataframe(cart_df, use_container_width=True, hide_index=True)
-    st.subheader(f"Yhteensä: {cart_total(products):.2f} €")
+    st.subheader(f"Yhteensä: {euro_fi(cart_total(products))}")
 
     st.markdown("#### Muokkaa ostoskoria")
     for product_id, current_qty in list(st.session_state.cart.items()):
@@ -440,8 +466,7 @@ def checkout_form(products: pd.DataFrame) -> None:
         phone = st.text_input("Puhelin")
         delivery_method = st.selectbox("Toimitustapa", ["Nouto", "Paikallinen toimitus", "Postitus"])
         notes = st.text_area("Lisätiedot")
-        honeypot = st.text_input("Jätä tämä kenttä tyhjäksi", value="")
-        st.caption("Jos näet tämän kentän, jätä se tyhjäksi.")
+        honeypot = st.text_input("Website", value="")
         submitted = st.form_submit_button("Lähetä tilaus")
 
         if submitted:

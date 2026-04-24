@@ -34,32 +34,141 @@ def inject_styles() -> None:
         '''
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Marck+Script&display=swap');
-            .stApp { background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%); font-family: 'Quicksand', sans-serif; }
-            .block-container { padding-top: 1.4rem; padding-bottom: 2rem; }
+
+            .stApp {
+                background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
+                font-family: 'Quicksand', sans-serif;
+            }
+
+            .block-container {
+                padding-top: 1.2rem;
+                padding-bottom: 2.2rem;
+                max-width: 1180px;
+            }
+
+            section[data-testid="stSidebar"],
+            button[kind="header"],
+            [data-testid="collapsedControl"] {
+                display: none !important;
+            }
+
             html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"],
             [data-testid="stText"], [data-testid="stMetricLabel"], [data-testid="stMetricValue"],
-            .stTextInput label, .stTextArea label, .stSelectbox label { font-family: 'Quicksand', sans-serif; }
-            h1, h2, h3 { color: #6f4e18; font-family: 'Quicksand', sans-serif; }
-            .shop-title { font-family: 'Marck Script', cursive; font-size: 3.2rem; font-weight: 400; color: #7a5216; margin-bottom: 0.15rem; line-height: 1.1; }
-            .shop-subtitle { font-size: 1.1rem; color: #8b6a2b; margin-bottom: 1.4rem; }
-            .section-card { background: rgba(255, 248, 235, 0.75); border: 1px solid #e8d7b5; border-radius: 18px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06); }
-            div[data-testid="stMetric"] { background: #fffaf2; border: 1px solid #ecdcb9; padding: 0.55rem 0.8rem; border-radius: 14px; }
+            .stTextInput label, .stTextArea label, .stSelectbox label {
+                font-family: 'Quicksand', sans-serif;
+            }
+
+            h1, h2, h3 {
+                color: #6f4e18;
+                font-family: 'Quicksand', sans-serif;
+            }
+
+            .shop-title {
+                font-family: 'Marck Script', cursive;
+                font-size: 3.1rem;
+                font-weight: 400;
+                color: #7a5216;
+                margin-bottom: 0.2rem;
+                line-height: 1.1;
+            }
+
+            .shop-subtitle {
+                font-size: 1.1rem;
+                color: #8b6a2b;
+                margin-bottom: 1.2rem;
+            }
+
+            .section-card {
+                background: rgba(255, 248, 235, 0.78);
+                border: 1px solid #e8d7b5;
+                border-radius: 18px;
+                padding: 1rem 1.2rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06);
+            }
+
+            .intro-card {
+                background: rgba(255, 248, 235, 0.86);
+                border: 1px solid #e8d7b5;
+                border-radius: 20px;
+                padding: 1.15rem 1.25rem;
+                margin: 0.8rem 0 1.2rem 0;
+                box-shadow: 0 4px 14px rgba(111, 78, 24, 0.05);
+            }
+
+            .intro-title {
+                color: #7a5216;
+                font-size: 1.2rem;
+                font-weight: 700;
+                margin-bottom: 0.35rem;
+            }
+
+            .intro-text {
+                color: #5f533d;
+                font-size: 1rem;
+                line-height: 1.65;
+            }
+
+            .steps-card {
+                background: rgba(255, 248, 235, 0.7);
+                border: 1px solid #eadab8;
+                border-radius: 18px;
+                padding: 1rem 1.2rem;
+                margin: 1rem 0 1.3rem 0;
+            }
+
+            .steps-title {
+                color: #7a5216;
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-bottom: 0.4rem;
+            }
+
+            .steps-list {
+                color: #5f533d;
+                margin: 0;
+                padding-left: 1.15rem;
+                line-height: 1.7;
+            }
+
+            div[data-testid="stMetric"] {
+                background: #fffaf2;
+                border: 1px solid #ecdcb9;
+                padding: 0.55rem 0.8rem;
+                border-radius: 14px;
+            }
+
             div[data-testid="stMetricLabel"] { color: #8b6a2b; }
             div[data-testid="stMetricValue"] { color: #6f4e18; }
+
             .stButton > button, .stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
-                background-color: #c48a1d; color: white; border: none; border-radius: 999px;
-                padding: 0.55rem 1.1rem; font-weight: 600; font-family: 'Quicksand', sans-serif;
+                background-color: #c48a1d;
+                color: white;
+                border: none;
+                border-radius: 999px;
+                padding: 0.55rem 1.1rem;
+                font-weight: 600;
+                font-family: 'Quicksand', sans-serif;
             }
+
             .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
-                background-color: #a96f0c; color: white;
+                background-color: #a96f0c;
+                color: white;
             }
+
             .small-note { color: #8b6a2b; font-size: 0.95rem; }
             .product-description { color: #5f533d; min-height: 3em; }
+
             .placeholder-box {
-                border: 1px dashed #d9c49b; border-radius: 16px; background: rgba(255,248,235,0.65);
-                color: #8b6a2b; padding: 2.2rem 1rem; text-align: center; margin-bottom: 0.5rem;
+                border: 1px dashed #d9c49b;
+                border-radius: 16px;
+                background: rgba(255,248,235,0.65);
+                color: #8b6a2b;
+                padding: 2.2rem 1rem;
+                text-align: center;
+                margin-bottom: 0.5rem;
             }
-            /* Piilota honeypot-kenttä */
+
             div[data-testid="stTextInput"]:has(input[aria-label="Website"]) {
                 display: none;
             }
@@ -77,7 +186,15 @@ def load_products() -> pd.DataFrame:
     df = pd.read_csv(PRODUCTS_FILE)
     df["price"] = df["price"].astype(float)
     df["stock"] = df["stock"].astype(int)
-    df.loc[df["name"] == "Lahjapakkaus", "description"] = "Kaunis hunajalahja kolmella pienellä purkilla."
+
+    replacements = {
+        "Kesähunaja 250 g": "Pehmeä ja kukkainen kesähunaja pieneen arjen herkutteluun.",
+        "Kesähunaja 500 g": "Runsas purkillinen pehmeää kesähunajaa koko perheen käyttöön.",
+        "Metsähunaja 250 g": "Tummempi ja täyteläisempi metsähunaja voimakkaamman maun ystävälle.",
+        "Lahjapakkaus": "Kaunis hunajalahja kolmella pienellä purkilla.",
+    }
+    for name, desc in replacements.items():
+        df.loc[df["name"] == name, "description"] = desc
     return df
 
 
@@ -304,6 +421,8 @@ Tilauksen sisältö:
 Yhteensä: {euro_fi(order_data['total'])}
 
 Tilauksesi on käsittelyssä ja saat tilausvahvistuksen sähköpostiisi hetken kuluttua.
+
+Lämmin kiitos tilauksestasi!
 """
 
 
@@ -340,6 +459,37 @@ def render_hero() -> None:
     )
 
 
+def render_intro() -> None:
+    st.markdown(
+        '''
+        <div class="intro-card">
+            <div class="intro-title">Tervetuloa puotiin</div>
+            <div class="intro-text">
+                Pieni hunajapuoti Nina tarjoaa paikallista hunajaa suoraan tuottajalta.
+                Jokainen tilaus käsitellään huolella, ja saat tilausvahvistuksen sähköpostiisi pian tilauksen jälkeen.
+                Voit tilata tuotteita helposti tämän sivun kautta, ja noudosta tai toimituksesta sovitaan tilausvahvistuksessa.
+            </div>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '''
+        <div class="steps-card">
+            <div class="steps-title">Näin tilaus etenee</div>
+            <ol class="steps-list">
+                <li>Valitse tuotteet koriin.</li>
+                <li>Lähetä tilauspyyntö.</li>
+                <li>Saat tilausvahvistuksen sähköpostiisi.</li>
+                <li>Nouto tai toimitus sovitaan tilausvahvistuksessa.</li>
+            </ol>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
+
+
 def render_missing_image_placeholder() -> None:
     st.markdown('<div class="placeholder-box">Tuotekuva tulossa</div>', unsafe_allow_html=True)
 
@@ -371,6 +521,7 @@ def product_card(product: pd.Series) -> None:
 
 def storefront(products: pd.DataFrame) -> None:
     render_hero()
+    render_intro()
     st.markdown(
         '<div class="section-card"><h3>Tuotteet</h3><div class="small-note">Pehmeää kesähunajaa, tummempaa metsähunajaa ja lahjapakkaus luonnon ystävälle.</div></div>',
         unsafe_allow_html=True,
@@ -529,13 +680,6 @@ def main() -> None:
     init_state()
     inject_styles()
     products = load_products()
-
-    st.sidebar.markdown("### Pieni hunajapuoti Nina")
-    st.sidebar.markdown("---")
-    st.sidebar.write("Paikallista hunajaa suoraan tuottajalta.")
-    st.sidebar.caption("Demo ilman maksamista tai kirjautumista.")
-    st.sidebar.caption("Tilaukset tallennetaan turvallisesti puodin omaan taulukkoon.")
-
     storefront(products)
     st.markdown("---")
     cart_view(products)

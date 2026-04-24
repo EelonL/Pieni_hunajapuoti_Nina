@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import re
@@ -169,26 +168,36 @@ def inject_styles() -> None:
             margin-bottom: 0.5rem;
         }
 
-        .cart-card {
+        .cart-header-box {
             background: rgba(255, 248, 235, 0.82);
             border: 1px solid #e8d7b5;
-            border-radius: 18px;
-            padding: 1rem 1rem 0.8rem 1rem;
-            margin-bottom: 0.9rem;
-            box-shadow: 0 4px 14px rgba(111, 78, 24, 0.05);
+            border-radius: 12px;
+            padding: 0.55rem 0.75rem;
+            margin-bottom: 0.45rem;
+            font-weight: 700;
+            color: #7a5216;
         }
 
-        .cart-title {
+        .cart-cell-box {
+            background: rgba(255, 248, 235, 0.82);
+            border: 1px solid #e8d7b5;
+            border-radius: 12px;
+            padding: 0.68rem 0.75rem;
+            margin-bottom: 0.45rem;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-product {
             color: #6f4e18;
             font-weight: 700;
-            font-size: 1.05rem;
-            margin-bottom: 0.2rem;
+            line-height: 1.3;
         }
 
-        .cart-sub {
+        .cart-muted {
             color: #8b6a2b;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.97rem;
         }
 
         div[data-testid="stTextInput"]:has(input[aria-label="Website"]) {
@@ -574,6 +583,11 @@ def cart_view(products: pd.DataFrame) -> None:
         st.info("Ostoskori on vielä tyhjä. Valitse ensin tuotteita yllä olevasta valikoimasta.")
         return
 
+    header_cols = st.columns([4.2, 1.5, 1.2, 1.5, 1.1])
+    for col, title in zip(header_cols, ["Tuote", "á-hinta", "Määrä", "Yhteensä", ""]):
+        with col:
+            st.markdown(f"<div class='cart-header-box'>{title}</div>", unsafe_allow_html=True)
+
     for product_id, current_qty in list(st.session_state.cart.items()):
         match = products.loc[products["id"] == product_id]
         if match.empty:
@@ -581,28 +595,23 @@ def cart_view(products: pd.DataFrame) -> None:
         product = match.iloc[0]
         line_total = float(product["price"]) * int(current_qty)
 
-        st.markdown(
-            f'''
-            <div class="cart-card">
-                <div class="cart-title">{product["name"]}</div>
-                <div class="cart-sub">á-hinta {euro_fi(float(product["price"]))} • yhteensä {euro_fi(line_total)}</div>
-            </div>
-            ''',
-            unsafe_allow_html=True,
-        )
-
-        c1, c2 = st.columns([3, 1])
-        with c1:
+        cols = st.columns([4.2, 1.5, 1.2, 1.5, 1.1])
+        with cols[0]:
+            st.markdown(f"<div class='cart-cell-box'><div class='cart-product'>{product['name']}</div></div>", unsafe_allow_html=True)
+        with cols[1]:
+            st.markdown(f"<div class='cart-cell-box'><div class='cart-muted'>{euro_fi(float(product['price']))}</div></div>", unsafe_allow_html=True)
+        with cols[2]:
             new_qty = st.number_input(
-                f"{product['name']} (kpl)",
+                f"{product['name']} määrä",
                 min_value=0,
                 max_value=max(0, int(product["stock"])),
                 value=int(current_qty),
                 key=f"cart_edit_{product_id}",
+                label_visibility="collapsed",
             )
-        with c2:
-            st.write("")
-            st.write("")
+        with cols[3]:
+            st.markdown(f"<div class='cart-cell-box'><div class='cart-muted'>{euro_fi(line_total)}</div></div>", unsafe_allow_html=True)
+        with cols[4]:
             if st.button("Poista", key=f"remove_{product_id}", use_container_width=True):
                 update_cart(product_id, 0)
                 clear_last_order()
@@ -614,14 +623,13 @@ def cart_view(products: pd.DataFrame) -> None:
             st.rerun()
 
     st.markdown("#### Lisää vielä tuote ostoskoriin")
-    add_col1, add_col2, add_col3 = st.columns([3, 1, 1])
-
-    with add_col1:
+    add_cols = st.columns([3.2, 1.2, 1.2])
+    with add_cols[0]:
         options = [""] + list(products["name"])
         selected_name = st.selectbox("Valitse tuote", options, key="cart_add_product")
-    with add_col2:
+    with add_cols[1]:
         add_qty = st.number_input("Määrä", min_value=1, value=1, key="cart_add_qty")
-    with add_col3:
+    with add_cols[2]:
         st.write("")
         st.write("")
         if st.button("Lisää", key="cart_add_button", use_container_width=True):

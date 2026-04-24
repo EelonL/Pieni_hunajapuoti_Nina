@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import re
 import smtplib
+import time
 import uuid
 from datetime import datetime
 from email.message import EmailMessage
@@ -21,8 +23,9 @@ IMAGE_MAP = {
     "Metsähunaja 250 g": IMAGES_DIR / "metsahunaja_250.png",
     "Lahjapakkaus": IMAGES_DIR / "lahjapakkaus.png",
 }
-
 HERO_IMAGE = IMAGES_DIR / "hero_banner.png"
+
+MIN_SECONDS_BETWEEN_ORDERS = 20
 
 st.set_page_config(page_title="Pieni hunajapuoti Nina", page_icon="🍯", layout="wide")
 
@@ -37,23 +40,19 @@ def inject_styles() -> None:
                 background: linear-gradient(180deg, #fffaf2 0%, #f6efe2 100%);
                 font-family: 'Quicksand', sans-serif;
             }
-
             .block-container {
                 padding-top: 1.4rem;
                 padding-bottom: 2rem;
             }
-
-            html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"], 
+            html, body, [class*="css"], [data-testid="stAppViewContainer"], [data-testid="stMarkdownContainer"],
             [data-testid="stText"], [data-testid="stMetricLabel"], [data-testid="stMetricValue"],
             .stTextInput label, .stTextArea label, .stSelectbox label {
                 font-family: 'Quicksand', sans-serif;
             }
-
             h1, h2, h3 {
                 color: #6f4e18;
                 font-family: 'Quicksand', sans-serif;
             }
-
             .shop-title {
                 font-family: 'Marck Script', cursive;
                 font-size: 3.2rem;
@@ -62,13 +61,11 @@ def inject_styles() -> None:
                 margin-bottom: 0.15rem;
                 line-height: 1.1;
             }
-
             .shop-subtitle {
                 font-size: 1.1rem;
                 color: #8b6a2b;
                 margin-bottom: 1.4rem;
             }
-
             .section-card {
                 background: rgba(255, 248, 235, 0.75);
                 border: 1px solid #e8d7b5;
@@ -77,22 +74,14 @@ def inject_styles() -> None:
                 margin-bottom: 1rem;
                 box-shadow: 0 4px 14px rgba(111, 78, 24, 0.06);
             }
-
             div[data-testid="stMetric"] {
                 background: #fffaf2;
                 border: 1px solid #ecdcb9;
                 padding: 0.55rem 0.8rem;
                 border-radius: 14px;
             }
-
-            div[data-testid="stMetricLabel"] {
-                color: #8b6a2b;
-            }
-
-            div[data-testid="stMetricValue"] {
-                color: #6f4e18;
-            }
-
+            div[data-testid="stMetricLabel"] { color: #8b6a2b; }
+            div[data-testid="stMetricValue"] { color: #6f4e18; }
             .stButton > button, .stDownloadButton > button, div[data-testid="stFormSubmitButton"] > button {
                 background-color: #c48a1d;
                 color: white;
@@ -102,20 +91,26 @@ def inject_styles() -> None:
                 font-weight: 600;
                 font-family: 'Quicksand', sans-serif;
             }
-
             .stButton > button:hover, .stDownloadButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
                 background-color: #a96f0c;
                 color: white;
             }
-
             .small-note {
                 color: #8b6a2b;
                 font-size: 0.95rem;
             }
-
             .product-description {
                 color: #5f533d;
                 min-height: 3em;
+            }
+            .placeholder-box {
+                border: 1px dashed #d9c49b;
+                border-radius: 16px;
+                background: rgba(255,248,235,0.65);
+                color: #8b6a2b;
+                padding: 2.2rem 1rem;
+                text-align: center;
+                margin-bottom: 0.5rem;
             }
         </style>
         """,
@@ -145,12 +140,16 @@ def get_gsheet_worksheet():
 
 
 def init_state() -> None:
-    if "cart" not in st.session_state:
-        st.session_state.cart = {}
-    if "last_order" not in st.session_state:
-        st.session_state.last_order = None
-    if "last_email_error" not in st.session_state:
-        st.session_state.last_email_error = None
+    defaults = {
+        "cart": {},
+        "last_order": None,
+        "last_email_error": None,
+        "last_submit_ts": 0.0,
+        "human_error_message": None,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
 
 def add_to_cart(product_id: int, quantity: int) -> None:
@@ -172,6 +171,7 @@ def clear_cart() -> None:
 def clear_last_order() -> None:
     st.session_state.last_order = None
     st.session_state.last_email_error = None
+    st.session_state.human_error_message = None
 
 
 def cart_dataframe(products: pd.DataFrame) -> pd.DataFrame:
@@ -241,14 +241,7 @@ def ensure_sheet_header() -> None:
         worksheet.update("A1:I1", [expected_header])
 
 
-def save_order(
-    customer_name: str,
-    email: str,
-    phone: str,
-    delivery_method: str,
-    notes: str,
-    products: pd.DataFrame,
-) -> tuple[str, str, float, str]:
+def save_order(customer_name: str, email: str, phone: str, delivery_method: str, notes: str, products: pd.DataFrame) -> tuple[str, str, float, str]:
     order_id = str(uuid.uuid4())[:8].upper()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     items = serialize_items(products)
@@ -272,7 +265,6 @@ def save_order(
 
 def send_email(subject: str, body: str, to_email: str, cc_email: str | None = None) -> None:
     smtp_cfg = st.secrets["smtp"]
-
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = smtp_cfg["sender_email"]
@@ -288,17 +280,7 @@ def send_email(subject: str, body: str, to_email: str, cc_email: str | None = No
         server.send_message(msg, to_addrs=recipients)
 
 
-def send_owner_notification(
-    customer_name: str,
-    customer_email: str,
-    phone: str,
-    delivery_method: str,
-    notes: str,
-    order_id: str,
-    timestamp: str,
-    total: float,
-    products: pd.DataFrame,
-) -> None:
+def send_owner_notification(customer_name: str, customer_email: str, phone: str, delivery_method: str, notes: str, order_id: str, timestamp: str, total: float, products: pd.DataFrame) -> None:
     app_cfg = st.secrets["app_config"]
     lines = "\n".join(order_lines(products))
     sheet_url = app_cfg["google_sheet_url"]
@@ -378,15 +360,13 @@ def show_last_order_box() -> None:
         return
 
     order_data = st.session_state.last_order
-    st.success(
-        f"Kiitos! Tilauspyyntösi vastaanotettiin. Tilausnumero: {order_data['order_id']}"
-    )
+    st.success(f"Kiitos! Tilauspyyntösi vastaanotettiin. Tilausnumero: {order_data['order_id']}")
     st.info("Tilauksesi on käsittelyssä ja saat tilausvahvistuksen sähköpostiisi hetken kuluttua.")
 
     if st.session_state.last_email_error:
         st.warning(
-            "Tilaus tallentui, mutta Ninalle lähtevän ilmoitusviestin lähetys epäonnistui: "
-            + st.session_state.last_email_error
+            "Tilaus tallentui onnistuneesti, mutta puodille lähtevän ilmoitusviestin lähetyksessä oli hetkellinen häiriö. "
+            "Puoti voi silti tarkistaa tilauksen Google Sheetistä."
         )
 
     receipt_text = build_order_receipt_text(order_data)
@@ -401,12 +381,15 @@ def show_last_order_box() -> None:
 def render_hero() -> None:
     if HERO_IMAGE.exists():
         st.image(str(HERO_IMAGE), use_container_width=True)
-
     st.markdown('<div class="shop-title">Pieni hunajapuoti Nina</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="shop-subtitle">Paikallista hunajaa suoraan tuottajalta — lämmin, pieni ja luonnonläheinen hunajapuoti.</div>',
         unsafe_allow_html=True,
     )
+
+
+def render_missing_image_placeholder() -> None:
+    st.markdown('<div class="placeholder-box">Tuotekuva tulossa</div>', unsafe_allow_html=True)
 
 
 def product_card(product: pd.Series) -> None:
@@ -415,13 +398,11 @@ def product_card(product: pd.Series) -> None:
     with st.container(border=True):
         if image_path:
             st.image(str(image_path), use_container_width=True)
+        else:
+            render_missing_image_placeholder()
 
         st.subheader(product["name"])
-        st.markdown(
-            f'<div class="product-description">{product["description"]}</div>',
-            unsafe_allow_html=True,
-        )
-
+        st.markdown(f'<div class="product-description">{product["description"]}</div>', unsafe_allow_html=True)
         st.metric("Hinta", f"{product['price']:.2f} €")
 
         qty = st.number_input(
@@ -439,9 +420,10 @@ def product_card(product: pd.Series) -> None:
 
 def storefront(products: pd.DataFrame) -> None:
     render_hero()
-
-    st.markdown('<div class="section-card"><h3>Tuotteet</h3><div class="small-note">Pehmeää kesähunajaa, tummempaa metsähunajaa ja lahjapakkaus luonnon ystävälle.</div></div>', unsafe_allow_html=True)
-
+    st.markdown(
+        '<div class="section-card"><h3>Tuotteet</h3><div class="small-note">Pehmeää kesähunajaa, tummempaa metsähunajaa ja lahjapakkaus luonnon ystävälle.</div></div>',
+        unsafe_allow_html=True,
+    )
     cols = st.columns(2)
     for idx, (_, product) in enumerate(products.iterrows()):
         with cols[idx % 2]:
@@ -451,7 +433,7 @@ def storefront(products: pd.DataFrame) -> None:
 def cart_view(products: pd.DataFrame) -> None:
     st.markdown("### Ostoskori")
     if not st.session_state.cart:
-        st.info("Ostoskori on vielä tyhjä.")
+        st.info("Ostoskori on vielä tyhjä. Valitse ensin tuotteita yllä olevasta valikoimasta.")
         return
 
     cart_df = cart_dataframe(products)
@@ -486,10 +468,42 @@ def cart_view(products: pd.DataFrame) -> None:
         st.rerun()
 
 
+def is_valid_email(email: str) -> bool:
+    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email.strip()))
+
+
+def is_valid_phone(phone: str) -> bool:
+    if not phone.strip():
+        return True
+    cleaned = re.sub(r"[^0-9+ ]", "", phone).strip()
+    digits = re.sub(r"\D", "", cleaned)
+    return len(digits) >= 7
+
+
+def validate_order_form(customer_name: str, email: str, phone: str, honeypot: str) -> str | None:
+    if honeypot.strip():
+        return "Lähetystä ei voitu käsitellä. Yritä uudelleen hetken kuluttua."
+    if len(customer_name.strip()) < 2:
+        return "Kirjoita nimesi hieman tarkemmin."
+    if not email.strip():
+        return "Täytä sähköpostiosoite."
+    if not is_valid_email(email):
+        return "Tarkista sähköpostiosoite."
+    if not is_valid_phone(phone):
+        return "Tarkista puhelinnumero."
+    seconds_since_last = time.time() - float(st.session_state.last_submit_ts)
+    if seconds_since_last < MIN_SECONDS_BETWEEN_ORDERS:
+        remaining = int(MIN_SECONDS_BETWEEN_ORDERS - seconds_since_last) + 1
+        return f"Odota vielä hetki ennen uuden tilauksen lähettämistä ({remaining} s)."
+    return None
+
+
 def checkout_form(products: pd.DataFrame) -> None:
     st.markdown("### Lähetä tilauspyyntö")
-
     show_last_order_box()
+
+    if st.session_state.human_error_message:
+        st.warning(st.session_state.human_error_message)
 
     if not st.session_state.cart:
         st.caption("Lisää ensin tuotteita koriin.")
@@ -501,13 +515,19 @@ def checkout_form(products: pd.DataFrame) -> None:
         phone = st.text_input("Puhelin")
         delivery_method = st.selectbox("Toimitustapa", ["Nouto", "Paikallinen toimitus", "Postitus"])
         notes = st.text_area("Lisätiedot")
+        honeypot = st.text_input("Jätä tämä kenttä tyhjäksi", value="")
+        st.caption("Jos näet tämän kentän, jätä se tyhjäksi.")
         submitted = st.form_submit_button("Lähetä tilaus")
 
         if submitted:
-            if not customer_name.strip() or not email.strip():
-                st.error("Täytä ainakin nimi ja sähköposti.")
-            else:
-                try:
+            st.session_state.human_error_message = None
+            validation_error = validate_order_form(customer_name, email, phone, honeypot)
+            if validation_error:
+                st.session_state.human_error_message = validation_error
+                st.rerun()
+
+            try:
+                with st.spinner("Tallennetaan tilausta..."):
                     order_id, timestamp, total, items = save_order(
                         customer_name.strip(),
                         email.strip(),
@@ -517,8 +537,11 @@ def checkout_form(products: pd.DataFrame) -> None:
                         products,
                     )
 
-                    st.session_state.last_email_error = None
-                    try:
+                st.session_state.last_submit_ts = time.time()
+                st.session_state.last_email_error = None
+
+                try:
+                    with st.spinner("Lähetetään ilmoitus puodille..."):
                         send_owner_notification(
                             customer_name=customer_name.strip(),
                             customer_email=email.strip(),
@@ -530,25 +553,26 @@ def checkout_form(products: pd.DataFrame) -> None:
                             total=total,
                             products=products,
                         )
-                    except Exception as e:
-                        st.session_state.last_email_error = str(e)
-
-                    st.session_state.last_order = {
-                        "order_id": order_id,
-                        "timestamp": timestamp,
-                        "customer_name": customer_name.strip(),
-                        "email": email.strip(),
-                        "phone": phone.strip(),
-                        "delivery_method": delivery_method,
-                        "items": items,
-                        "total": total,
-                    }
-
-                    clear_cart()
-                    st.balloons()
-                    st.rerun()
                 except Exception as e:
-                    st.error(f"Tilausta ei voitu tallentaa Google Sheetiin: {e}")
+                    st.session_state.last_email_error = str(e)
+
+                st.session_state.last_order = {
+                    "order_id": order_id,
+                    "timestamp": timestamp,
+                    "customer_name": customer_name.strip(),
+                    "email": email.strip(),
+                    "phone": phone.strip(),
+                    "delivery_method": delivery_method,
+                    "items": items,
+                    "total": total,
+                }
+
+                clear_cart()
+                st.balloons()
+                st.rerun()
+            except Exception:
+                st.session_state.human_error_message = "Tilauksen tallennuksessa tapahtui häiriö. Yritä hetken kuluttua uudelleen."
+                st.rerun()
 
 
 def main() -> None:
@@ -560,6 +584,7 @@ def main() -> None:
     st.sidebar.markdown("---")
     st.sidebar.write("Paikallista hunajaa suoraan tuottajalta.")
     st.sidebar.caption("Demo ilman maksamista tai kirjautumista.")
+    st.sidebar.caption("Tilaukset tallennetaan turvallisesti puodin omaan taulukkoon.")
 
     storefront(products)
     st.markdown("---")

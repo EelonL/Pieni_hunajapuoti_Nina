@@ -30,35 +30,6 @@ def get_gsheet_worksheet():
     return sh.sheet1
 
 
-def load_orders() -> pd.DataFrame:
-    columns = [
-        "timestamp",
-        "order_id",
-        "customer_name",
-        "email",
-        "phone",
-        "delivery_method",
-        "notes",
-        "items",
-        "total_eur",
-    ]
-    try:
-        worksheet = get_gsheet_worksheet()
-        values = worksheet.get_all_values()
-        if not values:
-            return pd.DataFrame(columns=columns)
-
-        header = values[0]
-        rows = values[1:]
-
-        if not rows:
-            return pd.DataFrame(columns=header)
-
-        return pd.DataFrame(rows, columns=header)
-    except Exception:
-        return pd.DataFrame(columns=columns)
-
-
 def init_state() -> None:
     if "cart" not in st.session_state:
         st.session_state.cart = {}
@@ -156,7 +127,14 @@ def ensure_sheet_header() -> None:
         worksheet.update("A1:I1", [expected_header])
 
 
-def save_order(customer_name: str, email: str, phone: str, delivery_method: str, notes: str, products: pd.DataFrame) -> tuple[str, str, float, str]:
+def save_order(
+    customer_name: str,
+    email: str,
+    phone: str,
+    delivery_method: str,
+    notes: str,
+    products: pd.DataFrame,
+) -> tuple[str, str, float, str]:
     order_id = str(uuid.uuid4())[:8].upper()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     items = serialize_items(products)
@@ -444,40 +422,19 @@ def checkout_form(products: pd.DataFrame) -> None:
                     st.error(f"Tilausta ei voitu tallentaa Google Sheetiin: {e}")
 
 
-def admin_view() -> None:
-    st.title("📦 Tilaukset")
-    orders = load_orders()
-    if orders.empty:
-        st.info("Tilauksia ei ole vielä tallennettu tai yhteys Google Sheetiin ei toimi.")
-        return
-
-    st.dataframe(orders, use_container_width=True, hide_index=True)
-
-    csv_data = orders.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="Lataa tilaukset CSV:nä",
-        data=csv_data,
-        file_name="orders.csv",
-        mime="text/csv",
-    )
-
-
 def main() -> None:
     init_state()
     products = load_products()
 
-    page = st.sidebar.radio("Sivu", ["Puoti", "Tilaukset"])
+    st.sidebar.markdown("### Pieni hunajapuoti")
     st.sidebar.markdown("---")
     st.sidebar.write("Demo ilman maksamista tai kirjautumista.")
 
-    if page == "Puoti":
-        storefront(products)
-        st.markdown("---")
-        cart_view(products)
-        st.markdown("---")
-        checkout_form(products)
-    else:
-        admin_view()
+    storefront(products)
+    st.markdown("---")
+    cart_view(products)
+    st.markdown("---")
+    checkout_form(products)
 
 
 if __name__ == "__main__":

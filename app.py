@@ -767,12 +767,19 @@ def checkout_form(products: pd.DataFrame) -> None:
     if not st.session_state.cart:
         st.caption(t("add_first"))
         return
+
     delivery_options = [t("pickup"), t("local_delivery"), t("shipping")]
     payment_choices = payment_options()
     customer_type_options = [t("private_customer"), t("business_customer")]
-    with st.form("checkout_form"):
-        customer_type = st.selectbox(t("customer_type"), customer_type_options)
 
+    # outside form so fields update immediately
+    customer_type = st.selectbox(
+        t("customer_type"),
+        customer_type_options,
+        key="customer_type_selector",
+    )
+
+    with st.form("checkout_form"):
         company_name = business_id = reference_info = ""
         billing_same_as_delivery = True
         billing_street_address = billing_postal_code = billing_city = ""

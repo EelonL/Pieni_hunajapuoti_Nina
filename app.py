@@ -812,12 +812,20 @@ def checkout_form(products: pd.DataFrame) -> None:
     payment_choices = payment_options()
     customer_type_options = [t("private_customer"), t("business_customer")]
 
-    # outside form so fields update immediately
-    customer_type = st.selectbox(
-        t("customer_type"),
-        customer_type_options,
-        key="customer_type_selector",
-    )
+    # These selectors are outside the form so dependent fields update immediately
+    selector_cols = st.columns(2)
+    with selector_cols[0]:
+        customer_type = st.selectbox(
+            t("customer_type"),
+            customer_type_options,
+            key="customer_type_selector",
+        )
+    with selector_cols[1]:
+        delivery_method = st.selectbox(
+            t("delivery_method"),
+            delivery_options,
+            key="delivery_method_selector",
+        )
 
     with st.form("checkout_form"):
         company_name = business_id = reference_info = ""
@@ -836,7 +844,6 @@ def checkout_form(products: pd.DataFrame) -> None:
 
         email = st.text_input(t("email"))
         phone = st.text_input(t("phone"))
-        delivery_method = st.selectbox(t("delivery_method"), delivery_options)
         payment_method = st.selectbox(t("payment_method"), payment_choices)
 
         st.markdown(f"#### {t('address_title')}")
@@ -917,7 +924,6 @@ def checkout_form(products: pd.DataFrame) -> None:
                 st.rerun()
             except Exception:
                 st.error(t("save_error"))
-
 
 def render_footer() -> None:
     st.markdown("---")

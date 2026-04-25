@@ -1,5 +1,9 @@
-id,name,price,stock,description,image
-1,Kesähunaja 250 g,7.90,20,Pehmeä ja kukkainen hunaja arkeen ja teehetkiin,
-2,Kesähunaja 500 g,12.90,15,Perinteinen kesähunaja koko perheelle,
-3,Metsähunaja 250 g,8.90,10,Tummempi ja voimakkaampi maku,
-4,Lahjapakkaus,18.90,8,Kaunis hunajalahja kahdella pienellä purkilla,
+id,name,price,stock
+1,Kesähunaja 250 g,7.90,20
+2,Kesähunaja 500 g,12.90,20
+3,Metsähunaja 250 g,8.90,20
+4,Lahjapakkaus,18.90,10
+5,Lakka & musta tee,9.90,20
+6,Metsä & vihreä tee,9.90,20
+7,Kanerva & sitrusmusta tee,9.90,20
+8,Kamomilla & sitruunamelissa,9.90,20

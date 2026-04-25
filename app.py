@@ -22,6 +22,10 @@ IMAGE_MAP = {
     "Kesähunaja 500 g": IMAGES_DIR / "kesahunaja_500.png",
     "Metsähunaja 250 g": IMAGES_DIR / "metsahunaja_250.png",
     "Lahjapakkaus": IMAGES_DIR / "lahjapakkaus.png",
+    "Lakka & musta tee": IMAGES_DIR / "lakka_musta_tee.png",
+    "Metsä & vihreä tee": IMAGES_DIR / "metsa_vihrea_tee.png",
+    "Kanerva & sitrusmusta tee": IMAGES_DIR / "kanerva_sitrusmusta_tee.png",
+    "Kamomilla & sitruunamelissa": IMAGES_DIR / "kamomilla_sitruunamelissa_tee.png",
 }
 HERO_IMAGE = IMAGES_DIR / "hero_banner.png"
 
@@ -41,7 +45,7 @@ TRANSLATIONS = {
         "step_3": "Lähetä tilaus.",
         "step_4": "Saat tilausvahvistuksen sähköpostiisi.",
         "products_title": "Tuotteet",
-        "products_note": "Pehmeää kesähunajaa, tummempaa metsähunajaa ja lahjapakkaus luonnon ystävälle.",
+        "products_note": "Pehmeää hunajaa, lahjapakkauksia sekä uusia hunaja-teeherkkuja pohjoisilla makuyhdistelmillä.",
         "cart_title": "Ostoskori",
         "cart_empty": "Ostoskori on vielä tyhjä. Valitse ensin tuotteita yllä olevasta valikoimasta.",
         "product_col": "Tuote",
@@ -144,6 +148,14 @@ TRANSLATIONS = {
         "p3_desc": "Tummempi ja täyteläisempi metsähunaja voimakkaamman maun ystävälle.",
         "p4_name": "Lahjapakkaus",
         "p4_desc": "Kaunis hunajalahja kolmella pienellä purkilla.",
+        "p5_name": "Lakka & musta tee",
+        "p5_desc": "Pehmeän hunajainen teeherkku, jossa lakan marjainen aromi ja mustan teen syvä maku yhdistyvät elegantiksi makeaksi nautinnoksi.",
+        "p6_name": "Metsä & vihreä tee",
+        "p6_desc": "Raikas ja luonnonläheinen herkku, jossa hunajan lämpö kohtaa vihreän teen keveyden ja metsän havuisen tunnelman.",
+        "p7_name": "Kanerva & sitrusmusta tee",
+        "p7_desc": "Hienostunut makuyhdistelmä, jossa kanervan pehmeä vivahde, sitruksen raikkaus ja mustan teen täyteläisyys täydentävät hunajan makeutta.",
+        "p8_name": "Kamomilla & sitruunamelissa",
+        "p8_desc": "Lempeä ja rauhoittava hunajateeherkku, jossa kamomillan pehmeys ja sitruunamelissan raikkaus luovat kevyen ja harmonisen maun.",
     }
 }
 TRANSLATIONS["sv"] = TRANSLATIONS["fi"] | {
@@ -157,7 +169,7 @@ TRANSLATIONS["sv"] = TRANSLATIONS["fi"] | {
     "step_3": "Skicka beställningen.",
     "step_4": "Du får en orderbekräftelse per e-post.",
     "products_title": "Produkter",
-    "products_note": "Mjuk sommarhonung, fylligare skogshonung och en presentförpackning för naturvänner.",
+    "products_note": "Mjuk honung, presentförpackningar och nya honungsteegodisar med nordiska smakkombinationer.",
     "cart_title": "Varukorg",
     "cart_empty": "Varukorgen är ännu tom. Välj först produkter från sortimentet ovan.",
     "product_col": "Produkt",
@@ -259,6 +271,14 @@ TRANSLATIONS["sv"] = TRANSLATIONS["fi"] | {
     "p3_desc": "Mörkare och fylligare skogshonung för dig som gillar kraftigare smak.",
     "p4_name": "Presentförpackning",
     "p4_desc": "En vacker honungsgåva med tre små burkar.",
+    "p5_name": "Hjortron & svart te",
+    "p5_desc": "En mjukt honungssöt te-delikatess där hjortronets bäriga arom och det svarta teets djupa smak förenas till en elegant njutning.",
+    "p6_name": "Skog & grönt te",
+    "p6_desc": "En frisk och naturnära delikatess där honungens värme möter grönt te och en skogsinspirerad känsla.",
+    "p7_name": "Ljung & svart te med citrus",
+    "p7_desc": "En finstämd smakkombination där ljungens mjuka ton, citrusens friskhet och svart te kompletterar honungens sötma.",
+    "p8_name": "Kamomill & citronmeliss",
+    "p8_desc": "En mild och rogivande honungsteedelikatess där kamomill och citronmeliss skapar en lätt och harmonisk smak.",
 }
 TRANSLATIONS["en"] = TRANSLATIONS["fi"] | {
     "shop_title": "Nina's Small Honey Shop",
@@ -271,7 +291,7 @@ TRANSLATIONS["en"] = TRANSLATIONS["fi"] | {
     "step_3": "Send your order.",
     "step_4": "You will receive an order confirmation by email.",
     "products_title": "Products",
-    "products_note": "Soft summer honey, fuller forest honey, and a gift set for nature lovers.",
+    "products_note": "Soft honey, gift sets, and new honey-tea treats with Nordic flavour combinations.",
     "cart_title": "Cart",
     "cart_empty": "Your cart is still empty. First choose products from the selection above.",
     "product_col": "Product",
@@ -373,6 +393,14 @@ TRANSLATIONS["en"] = TRANSLATIONS["fi"] | {
     "p3_desc": "Darker and fuller forest honey for those who enjoy a stronger taste.",
     "p4_name": "Gift Set",
     "p4_desc": "A beautiful honey gift with three small jars.",
+    "p5_name": "Cloudberry & Black Tea",
+    "p5_desc": "A softly honeyed tea treat where the berry aroma of cloudberry and the deep flavour of black tea come together in an elegant sweet indulgence.",
+    "p6_name": "Forest & Green Tea",
+    "p6_desc": "A fresh and nature-inspired treat where the warmth of honey meets the lightness of green tea and a forest mood.",
+    "p7_name": "Heather & Citrus Black Tea",
+    "p7_desc": "A refined flavour combination where soft heather notes, citrus freshness and full-bodied black tea complement the sweetness of honey.",
+    "p8_name": "Chamomile & Lemon Balm",
+    "p8_desc": "A gentle and calming honey-tea treat where chamomile softness and lemon balm freshness create a light and harmonious flavour.",
 }
 
 def t(key: str, **kwargs) -> str:
@@ -429,10 +457,28 @@ def render_language_switcher() -> None:
             st.session_state.lang = "en"; st.rerun()
 
 def translated_name_map() -> dict:
-    return {"Kesähunaja 250 g": t("p1_name"), "Kesähunaja 500 g": t("p2_name"), "Metsähunaja 250 g": t("p3_name"), "Lahjapakkaus": t("p4_name")}
+    return {
+        "Kesähunaja 250 g": t("p1_name"),
+        "Kesähunaja 500 g": t("p2_name"),
+        "Metsähunaja 250 g": t("p3_name"),
+        "Lahjapakkaus": t("p4_name"),
+        "Lakka & musta tee": t("p5_name"),
+        "Metsä & vihreä tee": t("p6_name"),
+        "Kanerva & sitrusmusta tee": t("p7_name"),
+        "Kamomilla & sitruunamelissa": t("p8_name"),
+    }
 
 def translated_desc_map() -> dict:
-    return {"Kesähunaja 250 g": t("p1_desc"), "Kesähunaja 500 g": t("p2_desc"), "Metsähunaja 250 g": t("p3_desc"), "Lahjapakkaus": t("p4_desc")}
+    return {
+        "Kesähunaja 250 g": t("p1_desc"),
+        "Kesähunaja 500 g": t("p2_desc"),
+        "Metsähunaja 250 g": t("p3_desc"),
+        "Lahjapakkaus": t("p4_desc"),
+        "Lakka & musta tee": t("p5_desc"),
+        "Metsä & vihreä tee": t("p6_desc"),
+        "Kanerva & sitrusmusta tee": t("p7_desc"),
+        "Kamomilla & sitruunamelissa": t("p8_desc"),
+    }
 
 def payment_options() -> list[str]:
     return [t("pay_mobilepay"), t("pay_card"), t("pay_bank"), t("pay_invoice"), t("pay_cash")]

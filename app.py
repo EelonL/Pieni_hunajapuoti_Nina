@@ -86,6 +86,19 @@ TRANSLATIONS = {
         "postal_code": "Postinumero",
         "city": "Postitoimipaikka",
         "notes": "Lisätiedot",
+        "pickup_note": "Noudon tarkempi aika ja paikka sovitaan tilausvahvistuksessa.",
+        "shipping_note": "Toimitus- ja postituskulut vahvistetaan tilausvahvistuksessa.",
+        "footer_title": "Yhteystiedot ja toimitusehdot",
+        "footer_contact": "Hunajapuoti Nina • tilausvahvistukset ja toimitustiedot sähköpostitse",
+        "footer_terms": "Tilaukset käsitellään henkilökohtaisesti. Noudosta, paikallisesta toimituksesta tai postituksesta sovitaan tilausvahvistuksessa. Maksulinkki voidaan lähettää asiakkaan valitseman maksutavan mukaan.",
+        "status_new": "Uusi",
+        "status_unpaid": "Odottaa maksua",
+        "status_paid": "Maksettu",
+        "status_processing": "Käsittelyssä",
+        "status_delivered": "Toimitettu",
+        "status_cancelled": "Peruttu",
+        "payment_link_no": "Ei lähetetty",
+        "payment_link_yes": "Lähetetty",
         "add_first": "Lisää ensin tuotteita koriin.",
         "save_order": "Tallennetaan tilausta...",
         "notify_shop": "Lähetetään ilmoitus puodille...",
@@ -188,6 +201,19 @@ TRANSLATIONS["sv"] = TRANSLATIONS["fi"] | {
     "postal_code": "Postnummer",
     "city": "Ort",
     "notes": "Tilläggsinformation",
+    "pickup_note": "Exakt tid och plats för avhämtning avtalas i orderbekräftelsen.",
+    "shipping_note": "Leverans- och portokostnader bekräftas i orderbekräftelsen.",
+    "footer_title": "Kontaktuppgifter och leveransvillkor",
+    "footer_contact": "Honungsbutiken Nina • orderbekräftelser och leveransuppgifter per e-post",
+    "footer_terms": "Beställningar behandlas personligt. Avhämtning, lokal leverans eller postleverans avtalas i orderbekräftelsen. En betalningslänk kan skickas enligt kundens valda betalningssätt.",
+    "status_new": "Ny",
+    "status_unpaid": "Väntar på betalning",
+    "status_paid": "Betald",
+    "status_processing": "Behandlas",
+    "status_delivered": "Levererad",
+    "status_cancelled": "Annullerad",
+    "payment_link_no": "Inte skickad",
+    "payment_link_yes": "Skickad",
     "add_first": "Lägg först produkter i varukorgen.",
     "save_order": "Sparar beställningen...",
     "notify_shop": "Skickar meddelande till butiken...",
@@ -289,6 +315,19 @@ TRANSLATIONS["en"] = TRANSLATIONS["fi"] | {
     "postal_code": "Postal code",
     "city": "City",
     "notes": "Additional information",
+    "pickup_note": "The exact pickup time and place will be agreed in the order confirmation.",
+    "shipping_note": "Delivery and shipping costs will be confirmed in the order confirmation.",
+    "footer_title": "Contact details and delivery terms",
+    "footer_contact": "Honey Shop Nina • order confirmations and delivery details by email",
+    "footer_terms": "Orders are handled personally. Pickup, local delivery or shipping will be agreed in the order confirmation. A payment link can be sent according to the customer's preferred payment method.",
+    "status_new": "New",
+    "status_unpaid": "Awaiting payment",
+    "status_paid": "Paid",
+    "status_processing": "Processing",
+    "status_delivered": "Delivered",
+    "status_cancelled": "Cancelled",
+    "payment_link_no": "Not sent",
+    "payment_link_yes": "Sent",
     "add_first": "Add products to your cart first.",
     "save_order": "Saving your order...",
     "notify_shop": "Sending notification to the shop...",
@@ -483,10 +522,11 @@ def ensure_sheet_header() -> None:
         "timestamp", "order_id", "customer_type", "company_name", "business_id", "contact_person",
         "reference_info", "customer_name", "email", "phone", "delivery_method", "payment_method",
         "street_address", "postal_code", "city", "billing_same_as_delivery", "billing_street_address",
-        "billing_postal_code", "billing_city", "notes", "items", "total_eur", "language"
+        "billing_postal_code", "billing_city", "notes", "items", "total_eur", "language",
+        "payment_link_sent", "payment_status", "order_status"
     ]
     if worksheet.row_values(1) != expected:
-        worksheet.update("A1:W1", [expected])
+        worksheet.update("A1:Z1", [expected])
 
 def save_order(customer_type: str, company_name: str, business_id: str, contact_person: str, reference_info: str,
                customer_name: str, email: str, phone: str, delivery_method: str, payment_method: str,
@@ -503,7 +543,7 @@ def save_order(customer_type: str, company_name: str, business_id: str, contact_
         timestamp, order_id, customer_type, company_name, business_id, contact_person, reference_info,
         customer_name, email, phone, delivery_method, payment_method, street_address, postal_code, city,
         billing_same_as_delivery, billing_street_address, billing_postal_code, billing_city, notes, items, total,
-        st.session_state.lang
+        st.session_state.lang, t("payment_link_no"), t("status_unpaid"), t("status_new")
     ])
     return order_id, timestamp, total, items
 
@@ -800,12 +840,17 @@ def checkout_form(products: pd.DataFrame) -> None:
         payment_method = st.selectbox(t("payment_method"), payment_choices)
 
         st.markdown(f"#### {t('address_title')}")
-        street_address = st.text_input(t("street_address"))
-        col1, col2 = st.columns(2)
-        with col1:
-            postal_code = st.text_input(t("postal_code"))
-        with col2:
-            city = st.text_input(t("city"))
+        street_address = postal_code = city = ""
+        if delivery_method == t("pickup"):
+            st.info(t("pickup_note"))
+        else:
+            street_address = st.text_input(t("street_address"))
+            col1, col2 = st.columns(2)
+            with col1:
+                postal_code = st.text_input(t("postal_code"))
+            with col2:
+                city = st.text_input(t("city"))
+            st.caption(t("shipping_note"))
 
         if customer_type == t("business_customer"):
             st.markdown(f"#### {t('billing_title')}")
@@ -836,7 +881,7 @@ def checkout_form(products: pd.DataFrame) -> None:
                 st.error(validation_error)
                 return
             try:
-                with st.spinner("Tallennetaan tilausta..."):
+                with st.spinner(t("save_order")):
                     order_id, timestamp, total, items = save_order(
                         customer_type, company_name.strip(), business_id.strip(), contact_person.strip(), reference_info.strip(),
                         contact_person.strip(), email.strip(), phone.strip(), delivery_method, payment_method,
@@ -848,7 +893,7 @@ def checkout_form(products: pd.DataFrame) -> None:
                 st.session_state.last_submit_ts = time.time()
                 st.session_state.last_email_error = None
                 try:
-                    with st.spinner("Lähetetään ilmoitus puodille..."):
+                    with st.spinner(t("notify_shop")):
                         send_owner_notification(
                             customer_type, company_name.strip(), business_id.strip(), contact_person.strip(), reference_info.strip(),
                             contact_person.strip(), email.strip(), phone.strip(), delivery_method, payment_method,
@@ -873,6 +918,16 @@ def checkout_form(products: pd.DataFrame) -> None:
             except Exception:
                 st.error(t("save_error"))
 
+
+def render_footer() -> None:
+    st.markdown("---")
+    st.markdown(
+        f"<div class='section-card'><h3>{t('footer_title')}</h3>"
+        f"<div class='small-note'>{t('footer_contact')}</div>"
+        f"<div class='product-description' style='margin-top:0.55rem;'>{t('footer_terms')}</div></div>",
+        unsafe_allow_html=True,
+    )
+
 def main() -> None:
     if "lang" not in st.session_state:
         st.session_state.lang = "fi"
@@ -884,6 +939,7 @@ def main() -> None:
     cart_view(products)
     st.markdown("---")
     checkout_form(products)
+    render_footer()
 
 if __name__ == "__main__":
     main()

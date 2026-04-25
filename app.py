@@ -306,6 +306,8 @@ def inject_styles() -> None:
         .cart-header { font-weight: 700; color: #7a5216; }
         .cart-product { color: #6f4e18; font-weight: 700; line-height: 1.3; }
         .cart-price, .cart-sum { color: #8b6a2b; font-size: 0.97rem; padding-top: 0.15rem; }
+        .lang-switcher-wrap { margin-top: 0.9rem; margin-bottom: 0.65rem; }
+        .lang-spacer { height: 0.35rem; }
         div[data-testid="stTextInput"]:has(input[aria-label="Website"]) { display: none; }
     </style>
     """

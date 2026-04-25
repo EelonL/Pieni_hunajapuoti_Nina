@@ -457,13 +457,9 @@ def send_email(subject: str, body: str, to_email: str, cc_email: str | None = No
 
 def send_owner_notification(customer_name: str, customer_email: str, phone: str, delivery_method: str, payment_method: str, street_address: str, postal_code: str, city: str, notes: str, order_id: str, timestamp: str, total: float, products: pd.DataFrame) -> None:
     app_cfg = st.secrets["app_config"]
-    lines = "
-".join(order_lines(products))
+    lines = "\n".join(order_lines(products))
     address_block = "-" if delivery_method == t("pickup") else f"{street_address}, {postal_code} {city}"
-    draft_reply = f"{t('receipt_greeting', name=customer_name)}
-
-{t('receipt_email_body', lines=lines, total=euro_fi(total))}
-"
+    draft_reply = f"{t('receipt_greeting', name=customer_name)}\n\n{t('receipt_email_body', lines=lines, total=euro_fi(total))}\n"
     owner_body = f"""{t('owner_order_received')}
 
 {t('receipt_time')}: {timestamp}
@@ -492,8 +488,7 @@ def send_owner_notification(customer_name: str, customer_email: str, phone: str,
     send_email(t('owner_new_order', order_id=order_id), owner_body, app_cfg["owner_email"], cc_email=app_cfg.get("cc_email"))
 
 def build_order_receipt_text(order_data: dict) -> str:
-    item_lines = order_data["items"].replace(" | ", "
-")
+    item_lines = order_data["items"].replace(" | ", "\n")
     address_block = "-" if order_data["delivery_method"] == t("pickup") else f"{order_data['street_address']}, {order_data['postal_code']} {order_data['city']}"
     return f"""{t('shop_title')}
 
